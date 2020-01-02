@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "extension"
+		},
+		{
+			"path": "ssh"
+		}
+	],
+	"settings": {
+		"typescript.tsc.autoDetect": "off"
+	}
+}

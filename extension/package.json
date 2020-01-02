@@ -1,0 +1,107 @@
+{
+	"name": "remote-x11",
+	"displayName": "Remote X11",
+	"description": "Sets the DISPLAY variable when in a remote workspace so that GUI applications can be run from VS Code.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ChaosinaCan/vscode-remote-x11",
+		"directory": "extension"
+	},
+	"author": {
+		"name": "Joel Spadin",
+		"email": "joelspadin@gmail.com",
+		"url": "https://github.com/ChaosinaCan"
+	},
+	"publisher": "spadin",
+	"license": "MIT",
+	"version": "1.0.0",
+	"engines": {
+		"vscode": "^1.41.0"
+	},
+	"extensionKind": [
+		"workspace"
+	],
+	"extensionPack": [
+		"spadin.remote-x11-ssh"
+	],
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"x11"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"contributes": {
+		"configuration":[
+			{
+				"title": "Remote X11",
+				"properties": {
+					"remoteX11.display": {
+						"type": "number",
+						"description": "Display number to connect to.",
+						"default": 0
+					},
+					"remoteX11.screen": {
+						"type": "number",
+						"description": "Screen number to connect to.",
+						"default": 0
+					},
+					"remoteX11.SSH.enable": {
+						"type": "boolean",
+						"description": "Enable X11 forwarding and set DISPLAY for SSH targets?",
+						"default": true
+					},
+					"remoteX11.WSL.enable": {
+						"type": "boolean",
+						"description": "Set DISPLAY for WSL targets?",
+						"default": true
+					},
+					"remoteX11.container.enable": {
+						"type": "boolean",
+						"description": "set DISPLAY for containers?",
+						"default": true
+					}
+				}
+			}
+		]
+	},
+	"main": "./dist/extension.js",
+	"scripts": {
+		"vscode:prepublish": "webpack --mode production",
+		"compile": "webpack --mode development",
+		"watch": "webpack --mode development --watch --info-verbosity verbose",
+		"lint": "tslint -p ./",
+		"test-compile": "tsc -p ./",
+		"pretest": "npm run test-compile",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.7",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.41.0",
+		"glob": "^7.1.5",
+		"mocha": "^6.2.2",
+		"prettier": "^1.19.1",
+		"ts-loader": "^6.2.1",
+		"tslint": "^5.20.0",
+		"tslint-config-prettier": "^1.18.0",
+		"tslint-plugin-prettier": "^2.1.0",
+		"typescript": "^3.7.4",
+		"vsce": "^1.71.0",
+		"vscode-test": "^1.2.2",
+		"webpack": "^4.41.5",
+		"webpack-cli": "^3.3.10"
+	},
+	"prettier": {
+		"singleQuote": true,
+		"trailingComma": "all",
+		"useTabs": true,
+		"printWidth": 120
+	},
+	"dependencies": {
+		"find-process": "^1.4.3"
+	}
+}
