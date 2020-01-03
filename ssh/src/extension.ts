@@ -118,21 +118,16 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 
 function initForwarding(conn: Client) {
 	conn.on('x11', (info, accept, reject) => {
-		// Only trust connections from this machine.
-		if (info.srcIP === '127.0.0.1') {
-			logger.log(`x11 accept: ${info.srcIP}`);
+		// TODO: handle authentication here?
+		logger.log(`x11 accept: ${info.srcIP}`);
 
-			const xserversock = new Socket();
-			xserversock.on('connect', () => {
-				const xclientsock = accept();
-				xclientsock.pipe(xserversock).pipe(xclientsock);
-			});
+		const xserversock = new Socket();
+		xserversock.on('connect', () => {
+			const xclientsock = accept();
+			xclientsock.pipe(xserversock).pipe(xclientsock);
+		});
 
-			xserversock.connect(BASE_PORT + getDisplay(), 'localhost');
-		} else {
-			logger.log(`x11 reject: ${info.srcIP}`);
-			reject();
-		}
+		xserversock.connect(BASE_PORT + getDisplay(), 'localhost');
 	});
 }
 
