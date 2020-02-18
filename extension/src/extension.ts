@@ -78,7 +78,7 @@ const sshHandler: RemoteHandler = {
 		const port = parts[3];
 		const username = os.userInfo().username;
 
-		logger.log(`Connecting to SSH ${username}@host ${port}`);
+		logger.log(`Connecting to SSH ${username}@${host} ${port}`);
 
 		return await vscode.commands.executeCommand<string>('remote-x11-ssh.connect', {
 			host,
