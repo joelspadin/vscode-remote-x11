@@ -77,20 +77,24 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 
 			conn.shell({ x11 }, (err, stream) => {
 				if (err) {
+					logger.log(`Error: ${err}`);
 					throw err;
 				}
 
 				let output: string = '';
 
 				// Reject if we don't get a response in a reasonable time.
-				let timeout = setTimeout(() => {
+				const timeout = setTimeout(() => {
 					logger.log('...timed out.');
 					reject(new Error(`Couldn't get forwarded display:\n${output}`));
 				}, TIMEOUT);
 
 				// Look for the "echo $DISPLAY" command and its response.
 				const onData = (data: Buffer) => {
-					output += data.toString('utf8');
+					const dataStr = data.toString('utf8');
+					logger.log(dataStr);
+
+					output += dataStr;
 
 					const match = output.match(/echo \$DISPLAY\r?\n^([a-zA-Z0-9][a-zA-Z0-9.-]*:\d+(\.\d+)?)$/m);
 					if (match) {
@@ -104,6 +108,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 				};
 
 				stream.on('data', onData);
+				stream.on('close', () => logger.log('Connection closed.'));
 				stream.write('echo $DISPLAY\n');
 			});
 		});
