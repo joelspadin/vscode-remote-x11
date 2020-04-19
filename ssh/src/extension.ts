@@ -81,7 +81,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 					throw err;
 				}
 
-				let output: string = '';
+				let output = '';
 
 				// Reject if we don't get a response in a reasonable time.
 				const timeout = setTimeout(() => {
@@ -113,7 +113,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 			});
 		});
 
-		conn.on('error', err => {
+		conn.on('error', (err) => {
 			reject(err);
 		});
 
@@ -122,7 +122,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 }
 
 function initForwarding(conn: Client) {
-	conn.on('x11', (info, accept, reject) => {
+	conn.on('x11', (info, accept, _reject) => {
 		// TODO: handle authentication here?
 		logger.log(`x11 accept: ${info.srcIP}`);
 

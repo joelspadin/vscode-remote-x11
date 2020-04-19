@@ -11,7 +11,7 @@ interface RemoteHandler {
 
 const logger = new Logger('Remote X11');
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(_context: vscode.ExtensionContext) {
 	const remote = vscode.env.remoteName;
 
 	if (remote) {
@@ -36,7 +36,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 }
 
-export function deactivate() {}
+export function deactivate() {
+	// Nothing to do.
+}
 
 function getConfig<T>(name: string, defaultValue: T): T {
 	const config = vscode.workspace.getConfiguration('remoteX11');
