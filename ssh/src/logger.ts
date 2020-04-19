@@ -7,7 +7,8 @@ export class Logger {
 		this.channel = vscode.window.createOutputChannel(name);
 	}
 
-	public log(message: any) {
-		this.channel.appendLine(message.toString());
+	public log(message: any, end = '\n') {
+		this.channel.append(message.toString());
+		this.channel.append(end);
 	}
 }

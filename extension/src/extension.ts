@@ -15,23 +15,10 @@ export async function activate(_context: vscode.ExtensionContext) {
 	const remote = vscode.env.remoteName;
 
 	if (remote) {
-		if (remote in remoteHandlers) {
-			const handler = remoteHandlers[remote];
-
-			if (handler.enabled()) {
-				logger.log(`Setting up display for remote "${remote}".`);
-
-				const display = await handler.connect();
-				if (display) {
-					await setDisplay(display);
-				} else {
-					logger.log(`Couldn't get display for remote "${remote}".`);
-				}
-			} else {
-				logger.log(`Forwarding is disabled for remote "${remote}".`);
-			}
-		} else {
-			logger.log(`No handler for remote "${remote}".`);
+		try {
+			await setupRemote(remote);
+		} catch (ex) {
+			logger.log(ex);
 		}
 	}
 }
@@ -47,6 +34,27 @@ function getConfig<T>(name: string, defaultValue: T): T {
 
 function getDisplay(host: string) {
 	return `${host}:${getConfig('display', 0)}.${getConfig('screen', 0)}`;
+}
+
+async function setupRemote(remote: string) {
+	if (remote in remoteHandlers) {
+		const handler = remoteHandlers[remote];
+
+		if (handler.enabled()) {
+			logger.log(`Setting up display for remote "${remote}".`);
+
+			const display = await handler.connect();
+			if (display) {
+				await setDisplay(display);
+			} else {
+				logger.log(`Couldn't get display for remote "${remote}".`);
+			}
+		} else {
+			logger.log(`Forwarding is disabled for remote "${remote}".`);
+		}
+	} else {
+		logger.log(`No handler for remote "${remote}".`);
+	}
 }
 
 const containerHandler: RemoteHandler = {
@@ -80,7 +88,7 @@ const sshHandler: RemoteHandler = {
 		const port = parts[3];
 		const username = os.userInfo().username;
 
-		logger.log(`Connecting to SSH ${username}@${host} ${port}`);
+		logger.log(`Connecting to SSH ${username}@${host} port ${port}`);
 
 		return await vscode.commands.executeCommand<string>('remote-x11-ssh.connect', {
 			host,
