@@ -2,10 +2,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-const DefaultDisplayCommand = 'bash -c "echo DISPLAY=$DISPLAY"';
 const DefaultTimeout = 3;
-
-type CommandSetting = string | Record<string, string> | undefined;
 
 export function getConfig<T>(name: string, defaultValue: T): T {
 	const config = vscode.workspace.getConfiguration('remoteX11');
@@ -26,16 +23,6 @@ export function getPrivateKey() {
 
 export function getTimeout() {
 	return getConfig('SSH.timeout', DefaultTimeout);
-}
-
-export function getDisplayCommand(host: string) {
-	const commands = getConfig<CommandSetting>('SSH.displayCommand', undefined);
-
-	if (typeof commands === 'object') {
-		return commands[host] ?? DefaultDisplayCommand;
-	}
-
-	return commands ?? DefaultDisplayCommand;
 }
 
 function resolveHome(file: string) {

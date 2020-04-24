@@ -3,14 +3,15 @@ import { Socket } from 'net';
 import { Client, ClientChannel, X11Options, X11Details } from 'ssh2';
 import * as vscode from 'vscode';
 
-import { getScreen, getDisplayCommand, getDisplay, getPrivateKey, getTimeout } from './config';
+import { getScreen, getDisplay, getPrivateKey, getTimeout } from './config';
 import { Logger } from './logger';
 import { withTimeout } from './timeout';
 
 interface ConnectOptions {
-	host: string;
 	username: string;
-	port?: number;
+	host: string;
+	port: number;
+	displayCommand: string;
 }
 
 const BASE_PORT = 6000;
@@ -52,8 +53,12 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 			reject(err);
 		});
 
+		const { username, host, port } = options;
+
 		conn.connect({
-			...options,
+			username,
+			host,
+			port,
 			privateKey: fs.readFileSync(getPrivateKey()),
 		});
 	});
@@ -98,7 +103,7 @@ async function getForwardedDisplay(stream: ClientChannel, options: ConnectOption
 	const parser = new DisplayParser(stream);
 
 	try {
-		const command = getDisplayCommand(options.host);
+		const command = options.displayCommand;
 		logger.log(`Command for host "${options.host}" is: ${command}`);
 		logger.log('----- Begin output from host -----\n');
 

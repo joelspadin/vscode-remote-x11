@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.2.0
+
+- Improved setting descriptions.
+- Added settings to override the host and port used for SSH connections.
+- Moved the `remoteX11.SSH.displayCommand` setting to the main extension.
+	You can now set a different command in each remote machine's settings.
+
 ## 1.1.0
 
 - Improved logging output.

@@ -15,8 +15,10 @@ but other servers such as [Cygwin/X](https://x.cygwin.com/), [Xming](http://www.
 and [X410](https://token2shell.com/x410/) should also work.
 
 For SSH connections, if the remote machine does not have Bash installed, you
-must change the `remoteX11.SSH.displayCommand` setting (see below) and provide
-a command that prints the value of the `DISPLAY` variable.
+must change the `remoteX11.SSH.displayCommand` setting and provide a command
+that prints the value of the `DISPLAY` variable. If you are using port
+forwarding, you may also need to change the `remoteX11.SSH.port` setting. See
+below for more details.
 
 ## Access Control
 
@@ -41,20 +43,24 @@ not supported.
 
 ## Extension Settings
 
+You must reload the window (F1 > Developer: Reload Window) for setting changes
+to apply.
+
 * `remoteX11.display` - Display number to connect to. Change this if your X server
 	is using a display other than 0.
 * `remoteX11.screen` - Screen number to connect to.
 * `remoteX11.container.enable` - Set `DISPLAY` for containers?
 * `remoteX11.SSH.enable` - Enable X11 forwarding and set `DISPLAY` for SSH targets?
 * `remoteX11.SSH.privateKey` - Absolute path to your SSH private key file.
-* `remoteX11.SSH.displayCommand` - Override the command used to get the `DISPLAY` variable. Use either of:
-	* A command which prints `DISPLAY=<DISPLAY>` followed by a newline, where `<DISPLAY>` is the
-		value of the `DISPLAY` variable. Note that there must not be any spaces in this text.
-	* A dictionary where keys are hostnames and values are the command to run when connected to that host.
-		Note that the hostname used by this extension may not match the one you provided to VS Code.
-		Check the logs for "Remote X11" in the Output pane (Ctrl+Shift+U) to get the correct hostname.
+* `remoteX11.SSH.displayCommand` - A command which prints `DISPLAY=<DISPLAY>` followed by a newline,
+	where `<DISPLAY>` is the value of the `DISPLAY` variable. Note that there must not be any spaces
+	in this text. Change this when connecting to a machine that doesn't support the default command.
 * `remoteX11.SSH.timeout` - Number of seconds to wait for the SSH shell to respond to the above command.
 	Use `0` to wait forever.
+* `remoteX11.SSH.host` - Sets the hostname or IP address used to connect to the SSH server.
+	Use this if Remote X11 tries to connect to the wrong address.
+* `remoteX11.SSH.port` - Sets the port used to connect to the SSH server. Use this if
+	Remote X11 tries to connect to the wrong port.
 * `remoteX11.WSL.enable` - Set `DISPLAY` for WSL targets?
 
 ## Troubleshooting
@@ -74,14 +80,19 @@ everything is working correctly, the logs should show something similar to:
 
 ```
 Setting up display for remote "ssh-remote".
-Connecting to SSH user@host port 22
+Connecting to SSH user@address port 22
 DISPLAY = localhost:11.0
 ```
+
+If you are using SSH and see that the address or port is incorrect, try changing
+them by setting the `remoteX11.SSH.host` and/or `remoteX11.SSH.port` settings.
+Note that these settings must be set on the remote machine, so open a remote
+workspace and use the **Remote** tab of settings to change them.
 
 If you are using SSH and don't see `DISPLAY = ...` in the logs, check the logs
 from "Remote X11 (SSH)" for errors as well. Near the end of the logs should be
 a command to print out the `DISPLAY` variable. If this command is failing, try
-changing it with the `removeX11.SSH.displayCommand` setting in your user (not
+changing it with the `remoteX11.SSH.displayCommand` setting in your user (not
 remote) settings.
 
 If you get any other errors and you can't figure out the cause, create an issue

@@ -2,6 +2,7 @@ import find = require('find-process');
 import * as os from 'os';
 import * as vscode from 'vscode';
 
+import { getConfig, getDisplay, getSshHost, getSshPort, getDisplayCommand } from './config';
 import { Logger } from './logger';
 
 interface RemoteHandler {
@@ -25,15 +26,6 @@ export async function activate(_context: vscode.ExtensionContext) {
 
 export function deactivate() {
 	// Nothing to do.
-}
-
-function getConfig<T>(name: string, defaultValue: T): T {
-	const config = vscode.workspace.getConfiguration('remoteX11');
-	return config.get(name, defaultValue);
-}
-
-function getDisplay(host: string) {
-	return `${host}:${getConfig('display', 0)}.${getConfig('screen', 0)}`;
 }
 
 async function setupRemote(remote: string) {
@@ -84,9 +76,10 @@ const sshHandler: RemoteHandler = {
 		}
 
 		const parts = connection.split(' ');
-		const host = parts[2];
-		const port = parts[3];
+		const host = getSshHost() || parts[2];
+		const port = getSshPort() || parseInt(parts[3]);
 		const username = os.userInfo().username;
+		const displayCommand = getDisplayCommand();
 
 		logger.log(`Connecting to SSH ${username}@${host} port ${port}`);
 
@@ -94,6 +87,7 @@ const sshHandler: RemoteHandler = {
 			host,
 			port,
 			username,
+			displayCommand,
 		});
 	},
 };

@@ -14,7 +14,7 @@
 	},
 	"publisher": "spadin",
 	"license": "MIT",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"engines": {
 		"vscode": "^1.44.0"
 	},
@@ -44,28 +44,16 @@
 		},
 		"configuration": [
 			{
-				"title": "Remote X11 Forwarding",
+				"title": "Remote X11",
 				"properties": {
 					"remoteX11.SSH.privateKey": {
 						"type": "string",
 						"description": "The absolute file path to the SSH private key file.",
 						"default": "~/.ssh/id_rsa"
 					},
-					"remoteX11.SSH.displayCommand": {
-						"type": ["string", "object"],
-						"description": "A command which prints \"DISPLAY=<DISPLAY>\" followed by a newline, where \"<DISPLAY>\" is the value of the DISPLAY variable, or a dictionary mapping hostnames to commands.",
-						"default": "bash -c \"echo DISPLAY=$DISPLAY\"",
-						"patternProperties": {
-							".*": {
-								"type": "string",
-								"description": "The command to use when connecting to this host. Should print \"DISPLAY=<DISPLAY>\" followed by a newline, where \"<DISPLAY>\" is the value of the DISPLAY variable.",
-								"default": "bash -c \"echo DISPLAY=$DISPLAY\""
-							}
-						}
-					},
 					"remoteX11.SSH.timeout": {
 						"type": "number",
-						"description": "Number of seconds to wait for the SSH shell to print the DISPLAY variable. Use 0 to wait forever.",
+						"markdownDescription": "Number of seconds to wait for the SSH shell to print the `DISPLAY` variable. Use 0 to wait forever.",
 						"default": 3
 					}
 				}

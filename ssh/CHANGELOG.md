@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.2.0
+
+- Improved setting descriptions.
+- Moved the `remoteX11.SSH.displayCommand` setting to the main extension.
+
 ## 1.1.0
 
 - All output from the SSH shell is now logged for easier troubleshooting.
