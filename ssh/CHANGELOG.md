@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.3.0
+
+- Added support for authentication using ssh-agent. This supports passphrase-protected keys.
+
 ## 1.2.0
 
 - Improved setting descriptions.

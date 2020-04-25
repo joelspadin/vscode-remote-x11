@@ -20,6 +20,7 @@ export async function activate(_context: vscode.ExtensionContext) {
 			await setupRemote(remote);
 		} catch (ex) {
 			logger.log(ex);
+			vscode.window.showErrorMessage(`Failed to get DISPLAY: ${ex}`);
 		}
 	}
 }

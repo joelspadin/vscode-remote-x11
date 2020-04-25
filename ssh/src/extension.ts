@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import { Socket } from 'net';
-import { Client, ClientChannel, X11Options, X11Details } from 'ssh2';
+import { Client, ClientChannel, X11Options, X11Details, ConnectConfig } from 'ssh2';
 import * as vscode from 'vscode';
 
-import { getScreen, getDisplay, getPrivateKey, getTimeout } from './config';
+import { getScreen, getDisplay, getTimeout, getAgent, getAuthenticationMethod, getPrivateKey } from './config';
 import { Logger } from './logger';
 import { withTimeout } from './timeout';
 
@@ -59,7 +59,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 			username,
 			host,
 			port,
-			privateKey: fs.readFileSync(getPrivateKey()),
+			...getAuthOptions(),
 		});
 	});
 }
@@ -97,6 +97,25 @@ function handleX11(info: X11Details, accept: () => ClientChannel) {
 	});
 
 	xserversock.connect(BASE_PORT + getDisplay(), 'localhost');
+}
+
+function getAuthOptions(): Partial<ConnectConfig> {
+	const method = getAuthenticationMethod();
+
+	switch (method) {
+		case 'agent':
+			return {
+				agent: getAgent(),
+			};
+
+		case 'keyFile':
+			return {
+				privateKey: fs.readFileSync(getPrivateKey()),
+			};
+
+		default:
+			throw new Error(`Unknown authentication method: ${method}.`);
+	}
 }
 
 async function getForwardedDisplay(stream: ClientChannel, options: ConnectOptions): Promise<string> {

@@ -36,10 +36,8 @@ To work around this, the [Remote X11 (SSH)](https://marketplace.visualstudio.com
 extension creates an SSH connection to the remote machine with forwarding
 enabled in the background.
 
-**This extension currently only supports public key authentication.** By default,
-your private key file is assumed to be `~/.ssh/id_rsa`, but this can be changed
-with the `remoteX11.SSH.privateKey` setting. Keys with passphrases are currently
-not supported.
+**This extension currently only supports public key authentication.** See below
+for more details on authentication settings.
 
 ## Extension Settings
 
@@ -51,7 +49,16 @@ to apply.
 * `remoteX11.screen` - Screen number to connect to.
 * `remoteX11.container.enable` - Set `DISPLAY` for containers?
 * `remoteX11.SSH.enable` - Enable X11 forwarding and set `DISPLAY` for SSH targets?
+* `remoteX11.SSH.authenticationMethod`:
+	* `keyFile` - Authenticate with the private key file specified by `remoteX11.SSH.privateKey`.
+		Passphrase-protected keys are not supported.
+	* `agent` - Use `ssh-agent` to get keys. This method does support passphrase-protected keys.
+* `remoteX11.SSH.agent` - Name of a Unix socket or Windows named pipe for ssh-agent.
+	Set to `pageant` to use Pageant on Windows. If left empty, defaults to Windows 10's OpenSSH
+	agent (`\\.\pipe\openssh-ssh-agent`) or the `SSH_AUTH_SOCK` environment variable on other platforms.
+	Only used if `remoteX11.SSH.authenticationMethod` is `agent`.
 * `remoteX11.SSH.privateKey` - Absolute path to your SSH private key file.
+	Only used if `remoteX11.SSH.authenticationMethod` is `publicKey`.
 * `remoteX11.SSH.displayCommand` - A command which prints `DISPLAY=<DISPLAY>` followed by a newline,
 	where `<DISPLAY>` is the value of the `DISPLAY` variable. Note that there must not be any spaces
 	in this text. Change this when connecting to a machine that doesn't support the default command.
@@ -62,6 +69,42 @@ to apply.
 * `remoteX11.SSH.port` - Sets the port used to connect to the SSH server. Use this if
 	Remote X11 tries to connect to the wrong port.
 * `remoteX11.WSL.enable` - Set `DISPLAY` for WSL targets?
+
+### Authentication Settings
+
+Remote X11 currently only supports public key authentication. You must use
+`ssh-keygen` to generate a public/private key pair and add your public key to
+your server's `~/.ssh/authorized_keys` file.
+
+There are two ways RemoteX11 can be configured to get keys:
+
+#### Private Key File
+
+If the `remoteX11.SSH.authenticationMethod` setting is `keyFile`, Remote X11 will
+read the file given by the `remoteX11.SSH.privateKey` file as your private key.
+This defaults to `~/.ssh/id_rsa`, so you must change it if your file is named
+differently.
+
+**This method does not support passphrase-protected private keys!** See below
+for methods that do.
+
+#### SSH Agent
+
+If the `remoteX11.SSH.authenticationMethod` setting is `agent`, Remote X11 will
+use `ssh-agent` to read keys added with `ssh-add`.
+[See the VS Code documentation](https://code.visualstudio.com/docs/remote/troubleshooting#_setting-up-the-ssh-agent) for instructions on enabling the SSH Agent.
+
+To add your key to the SSH agent, open a terminal on the **local** machine and run:
+
+```sh
+ssh-add <path/to/private/key>
+```
+
+If your key is passphrase-protected, you will be prompted to enter the passphrase.
+You can then log in without re-entering the passphrase.
+
+You can also use [Pageant](https://winscp.net/eng/docs/ui_pageant) on Windows by
+changing the `remoteX11.SSH.agent` setting to `pageant`.
 
 ## Troubleshooting
 
@@ -83,6 +126,17 @@ Setting up display for remote "ssh-remote".
 Connecting to SSH user@address port 22
 DISPLAY = localhost:11.0
 ```
+
+If you see an error like "Cannot parse privateKey: Encrypted OpenSSH private
+key detected, but no passphrase given", passphrase-protected keys are not
+supported with the default authentication method. You must use an SSH Agent
+instead. See **Authentication Settings** above for more details.
+
+If you see an error like "All configured authentication methods failed", check
+your authentication settings. This usually means that either your public key is
+not in the remote server's `authorized_keys` file, or you haven't added your
+private key to your SSH agent. See **Authentication Settings** above for more
+details.
 
 If you are using SSH and see that the address or port is incorrect, try changing
 them by setting the `remoteX11.SSH.host` and/or `remoteX11.SSH.port` settings.

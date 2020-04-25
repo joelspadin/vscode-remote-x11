@@ -14,7 +14,7 @@
 	},
 	"publisher": "spadin",
 	"license": "MIT",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"engines": {
 		"vscode": "^1.44.0"
 	},
@@ -46,6 +46,24 @@
 			{
 				"title": "Remote X11",
 				"properties": {
+					"remoteX11.SSH.authenticationMethod": {
+						"type": "string",
+						"description": "Sets how Remote X11 authenticates for SSH connections.",
+						"default": "keyFile",
+						"enum": [
+							"keyFile",
+							"agent"
+						],
+						"markdownEnumDescriptions": [
+							"Public key authentication using the configured `#remoteX11.SSH.privateKey#` as the key file. Passphrase-protected keys are not supported.",
+							"Authenticate using a key saved to an SSH Agent. Use the `#remoteX11.SSH.agent#` setting if you are not using your platform's default agent."
+						]
+					},
+					"remoteX11.SSH.agent": {
+						"type": "string",
+						"markdownDescription": "Name of a Unix socket or Windows named pipe for ssh-agent. Set to `pageant` to use Pageant on Windows. If left empty, defaults to Windows 10's OpenSSH agent or the `SSH_AUTH_SOCK` environment variable on other platforms.",
+						"default": ""
+					},
 					"remoteX11.SSH.privateKey": {
 						"type": "string",
 						"description": "The absolute file path to the SSH private key file.",

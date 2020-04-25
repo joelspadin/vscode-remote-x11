@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.3.0
+
+- Errors when setting up `DISPLAY` are now shown in a notification as well as the logs.
+- SSH extension changes:
+	- Added support for authentication using ssh-agent. This supports passphrase-protected keys.
+
 ## 1.2.0
 
 - Improved setting descriptions.
