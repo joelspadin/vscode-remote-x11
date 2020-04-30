@@ -179,7 +179,7 @@ class DisplayParser implements vscode.Disposable {
 			return;
 		}
 
-		const match = this.currentLine.match(/DISPLAY=(\S+:[\d.]+)?$/m);
+		const match = this.currentLine.match(/DISPLAY=(\S+:[\d.]+)?\r?\n/m);
 
 		if (match) {
 			const display = match[1];

@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.3.1
+
+- Fixed possible "DISPLAY variable is missing" errors when SSH servers send data in small chunks.
+
 ## 1.3.0
 
 - Added support for authentication using ssh-agent. This supports passphrase-protected keys.
