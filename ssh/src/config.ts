@@ -36,6 +36,10 @@ export function getTimeout() {
 	return getConfig('SSH.timeout', DefaultTimeout);
 }
 
+export function isVerboseLoggingEnabled() {
+	return getConfig('SSH.verboseLogging', false);
+}
+
 function getDefaultAgent() {
 	if (os.platform() === 'win32') {
 		return '\\\\.\\pipe\\openssh-ssh-agent';

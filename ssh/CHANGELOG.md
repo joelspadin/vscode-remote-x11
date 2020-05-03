@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.3.2
+
+- Added a `remoteX11.SSH.verboseLogging` setting to log more information about the SSH connection to the output panel.
+
 ## 1.3.1
 
 - Fixed possible "DISPLAY variable is missing" errors when SSH servers send data in small chunks.

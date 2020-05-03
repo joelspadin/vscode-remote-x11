@@ -3,7 +3,15 @@ import { Socket } from 'net';
 import { Client, ClientChannel, X11Options, X11Details, ConnectConfig } from 'ssh2';
 import * as vscode from 'vscode';
 
-import { getScreen, getDisplay, getTimeout, getAgent, getAuthenticationMethod, getPrivateKey } from './config';
+import {
+	getScreen,
+	getDisplay,
+	getTimeout,
+	getAgent,
+	getAuthenticationMethod,
+	getPrivateKey,
+	isVerboseLoggingEnabled,
+} from './config';
 import { Logger } from './logger';
 import { withTimeout } from './timeout';
 
@@ -59,6 +67,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 			username,
 			host,
 			port,
+			debug: isVerboseLoggingEnabled() ? logVerbose : undefined,
 			...getAuthOptions(),
 		});
 	});
@@ -138,6 +147,10 @@ async function getForwardedDisplay(stream: ClientChannel, options: ConnectOption
 	} finally {
 		parser.dispose();
 	}
+}
+
+function logVerbose(message: string) {
+	logger.log(message);
 }
 
 class DisplayParser implements vscode.Disposable {
