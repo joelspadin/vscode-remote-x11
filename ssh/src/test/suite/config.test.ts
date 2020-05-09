@@ -1,5 +1,7 @@
 import * as assert from 'assert';
+import { afterEach } from 'mocha';
 import * as os from 'os';
+import sinon = require('sinon');
 
 import {
 	getDisplay,
@@ -18,6 +20,10 @@ import {
 import { stubConfig } from '../stubs';
 
 suite('Configuration Test Suite', () => {
+	afterEach(() => {
+		sinon.restore();
+	});
+
 	test('getDisplay', () => {
 		stubConfig({ display: 1 });
 		assert.strictEqual(getDisplay(), 1);
@@ -69,9 +75,9 @@ suite('Configuration Test Suite', () => {
 
 	test('getPrivateKey', () => {
 		stubConfig({
-			'SSH.privateKey': '~/.ssh/id_ecdsa',
+			'SSH.privateKey': '/home/fakeuser/.ssh/id_ecdsa',
 		});
-		assert.strictEqual(getPrivateKey(), '~/.ssh/id_ecdsa');
+		assert.strictEqual(getPrivateKey(), '/home/fakeuser/.ssh/id_ecdsa');
 	});
 
 	test('getServerHost', () => {
