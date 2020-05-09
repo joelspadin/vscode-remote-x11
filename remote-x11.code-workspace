@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "ssh"
+		},
+		{
+			"path": ".github"
 		}
 	],
 	"settings": {
