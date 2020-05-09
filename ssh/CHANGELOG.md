@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.3.3
+
+- Fixed a timeout function that never actually timed out.
+- Moved several SSH settings back to this extension, since it does see remote settings.
+
 ## 1.3.2
 
 - Added a `remoteX11.SSH.verboseLogging` setting to log more information about the SSH connection to the output panel.

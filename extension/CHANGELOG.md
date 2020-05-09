@@ -1,5 +1,18 @@
 # Change Log
 
+See the [Remote X11 (SSH) Changelog](https://github.com/ChaosinaCan/vscode-remote-x11/blob/master/ssh/CHANGELOG.md#change-log)
+for full changes to the SSH extension. Only new features and notable fixes are listed below.
+
+## 1.3.3
+
+- Improved documentation.
+- Fixed a timeout function that never actually timed out.
+
+## 1.3.2
+
+- SSH extension changes:
+	- Added a `remoteX11.SSH.verboseLogging` setting to log more information about the SSH connection to the output panel.
+
 ## 1.3.0
 
 - Errors when setting up `DISPLAY` are now shown in a notification as well as the logs.
