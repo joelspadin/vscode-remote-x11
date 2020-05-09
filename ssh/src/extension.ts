@@ -138,7 +138,7 @@ async function getForwardedDisplay(stream: ClientChannel, options: ConnectOption
 		stream.write(command);
 		stream.write('\n');
 
-		const display = await withTimeout(parser.result, getTimeout(), 'Timed out forwarding display.');
+		const display = await withTimeout(parser.result, getTimeout() * 1000, 'Timed out forwarding display.');
 
 		logger.log('\n----- End output from host -----');
 		logger.log(`Display ready: ${display}`);
@@ -167,7 +167,7 @@ class DisplayParser implements vscode.Disposable {
 			this.reject = reject;
 		});
 
-		this.result.then(this.dispose);
+		this.result.then(() => this.dispose());
 
 		this.dataHandler = this.onData.bind(this);
 		this.stream.on('data', this.dataHandler);
