@@ -14,10 +14,12 @@ export async function withTimeout<T>(promise: Promise<T>, ms: number, errorMessa
 
 	let id: NodeJS.Timeout | undefined;
 	const timer = new Promise<never>((_resolve, reject) => {
-		id = setTimeout(() => reject(new TimeoutError(errorMessage)), ms);
+		id = setTimeout(() => {
+			reject(new TimeoutError(errorMessage));
+		}, ms);
 	});
 
-	const result = Promise.race([promise, timer]);
+	const result = await Promise.race([promise, timer]);
 
 	if (id !== undefined) {
 		clearTimeout(id);

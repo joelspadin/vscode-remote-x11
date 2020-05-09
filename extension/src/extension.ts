@@ -12,7 +12,7 @@ interface RemoteHandler {
 
 const logger = new Logger('Remote X11');
 
-export async function activate(_context: vscode.ExtensionContext) {
+export async function activate() {
 	const remote = vscode.env.remoteName;
 
 	if (remote) {
