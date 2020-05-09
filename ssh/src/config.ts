@@ -3,8 +3,8 @@ import * as path from 'path';
 import * as process from 'process';
 import * as vscode from 'vscode';
 
-const DefaultTimeout = 5;
-const DefaultDisplayCommand = 'bash -c "echo DISPLAY=$DISPLAY"';
+export const DefaultTimeout = 5;
+export const DefaultDisplayCommand = 'bash -c "echo DISPLAY=$DISPLAY"';
 
 export type AuthenticationMethod = 'agent' | 'keyFile';
 
