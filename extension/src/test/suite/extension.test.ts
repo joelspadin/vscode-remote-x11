@@ -79,7 +79,6 @@ suite('Extension Test Suite', () => {
 		stubConfig({
 			display: 1,
 			screen: 2,
-			'SSH.displayCommand': 'fakecommand',
 		});
 
 		process.env['SSH_CONNECTION'] = 'clientaddr 1234 serveraddr 5678';
@@ -98,43 +97,6 @@ suite('Extension Test Suite', () => {
 				host: 'serveraddr',
 				port: 5678,
 				username: 'fakeuser',
-				displayCommand: 'fakecommand',
-			})
-			.resolves('localhost:1.2');
-
-		await activate();
-
-		assert(stub.called);
-		assert.equal(process.env['DISPLAY'], 'localhost:1.2');
-	});
-
-	test('SSH: server config', async () => {
-		stubRemoteName('ssh-remote');
-		stubConfig({
-			display: 1,
-			screen: 2,
-			'SSH.displayCommand': 'fakecommand',
-			'SSH.host': 'customhost',
-			'SSH.port': 42,
-		});
-
-		process.env['SSH_CONNECTION'] = 'clientaddr 1234 serveraddr 5678';
-
-		sinon.stub(os, 'userInfo').returns({
-			gid: 8765,
-			homedir: '',
-			shell: 'turtle',
-			uid: 4321,
-			username: 'fakeuser',
-		});
-
-		const stub = sinon
-			.stub(vscode.commands, 'executeCommand')
-			.withArgs('remote-x11-ssh.connect', {
-				host: 'customhost',
-				port: 42,
-				username: 'fakeuser',
-				displayCommand: 'fakecommand',
 			})
 			.resolves('localhost:1.2');
 

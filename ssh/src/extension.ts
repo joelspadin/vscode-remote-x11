@@ -11,6 +11,9 @@ import {
 	getAuthenticationMethod,
 	getPrivateKey,
 	isVerboseLoggingEnabled,
+	getServerHost,
+	getServerPort,
+	getDisplayCommand,
 } from './config';
 import { Logger } from './logger';
 import { withTimeout } from './timeout';
@@ -19,7 +22,6 @@ interface ConnectOptions {
 	username: string;
 	host: string;
 	port: number;
-	displayCommand: string;
 }
 
 const BASE_PORT = 6000;
@@ -46,7 +48,11 @@ export function deactivate() {
 
 function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<string> {
 	return new Promise((resolve, reject) => {
-		logger.log(`Connecting to ${options.username}@${options.host} port ${options.port}`);
+		const { username } = options;
+		const host = getServerHost() || options.host;
+		const port = getServerPort() || options.port;
+
+		logger.log(`Connecting to ${username}@${host} port ${port}`);
 
 		conn.on('x11', handleX11);
 
@@ -54,14 +60,12 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 		// as long as VS Code is running so that we can point VS Code to its
 		// display.
 		conn.on('ready', () => {
-			resolve(createForwardingShell(conn, options));
+			resolve(createForwardingShell(conn));
 		});
 
 		conn.on('error', (err) => {
 			reject(err);
 		});
-
-		const { username, host, port } = options;
 
 		conn.connect({
 			username,
@@ -73,7 +77,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 	});
 }
 
-function createForwardingShell(conn: Client, options: ConnectOptions): Promise<string> {
+function createForwardingShell(conn: Client): Promise<string> {
 	logger.log('Connection ready. Setting up display...');
 
 	return new Promise((resolve, reject) => {
@@ -90,7 +94,7 @@ function createForwardingShell(conn: Client, options: ConnectOptions): Promise<s
 
 			stream.on('close', () => logger.log('Connection closed.'));
 
-			resolve(getForwardedDisplay(stream, options));
+			resolve(getForwardedDisplay(stream));
 		});
 	});
 }
@@ -127,12 +131,12 @@ function getAuthOptions(): Partial<ConnectConfig> {
 	}
 }
 
-async function getForwardedDisplay(stream: ClientChannel, options: ConnectOptions): Promise<string> {
+async function getForwardedDisplay(stream: ClientChannel): Promise<string> {
 	const parser = new DisplayParser(stream);
 
 	try {
-		const command = options.displayCommand;
-		logger.log(`Command for host "${options.host}" is: ${command}`);
+		const command = getDisplayCommand();
+		logger.log(`Echo display command is: ${command}`);
 		logger.log('----- Begin output from host -----\n');
 
 		stream.write(command);
@@ -175,7 +179,6 @@ class DisplayParser implements vscode.Disposable {
 
 	public dispose() {
 		if (this.dataHandler) {
-			logger.log('Parser disposed.');
 			this.stream.removeListener('data', this.dataHandler);
 			this.dataHandler = undefined;
 		}

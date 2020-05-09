@@ -4,6 +4,7 @@ import * as process from 'process';
 import * as vscode from 'vscode';
 
 const DefaultTimeout = 5;
+const DefaultDisplayCommand = 'bash -c "echo DISPLAY=$DISPLAY"';
 
 export type AuthenticationMethod = 'agent' | 'keyFile';
 
@@ -30,6 +31,18 @@ export function getAgent() {
 
 export function getPrivateKey() {
 	return resolveHome(getConfig('SSH.privateKey', '~/.ssh/id_rsa'));
+}
+
+export function getServerHost() {
+	return getConfig<string | null>('SSH.host', null);
+}
+
+export function getServerPort() {
+	return getConfig<number | null>('SSH.port', null);
+}
+
+export function getDisplayCommand() {
+	return getConfig('SSH.displayCommand', DefaultDisplayCommand);
 }
 
 export function getTimeout() {

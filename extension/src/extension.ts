@@ -2,7 +2,7 @@ import find = require('find-process');
 import * as os from 'os';
 import * as vscode from 'vscode';
 
-import { getConfig, getDisplay, getSshHost, getSshPort, getDisplayCommand } from './config';
+import { getConfig, getDisplay } from './config';
 import { Logger } from './logger';
 
 interface RemoteHandler {
@@ -77,18 +77,16 @@ const sshHandler: RemoteHandler = {
 		}
 
 		const parts = connection.split(' ');
-		const host = getSshHost() || parts[2];
-		const port = getSshPort() || parseInt(parts[3]);
+		const host = parts[2];
+		const port = parseInt(parts[3]);
 		const username = os.userInfo().username;
-		const displayCommand = getDisplayCommand();
 
-		logger.log(`Connecting to SSH ${username}@${host} port ${port}`);
+		logger.log(`Connecting to SSH. See Remote X11 (SSH) logs for more details.`);
 
 		return await vscode.commands.executeCommand<string>('remote-x11-ssh.connect', {
 			host,
 			port,
 			username,
-			displayCommand,
 		});
 	},
 };

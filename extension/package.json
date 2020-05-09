@@ -53,27 +53,6 @@
 						"markdownDescription": "Enable X11 forwarding and set `DISPLAY` for SSH targets?",
 						"default": true
 					},
-					"remoteX11.SSH.host": {
-						"type": "string",
-						"markdownDescription": "Sets the hostname or IP address to connect to instead of reading from `SSH_CONNECTION`.",
-						"default": "",
-						"scope": "machine"
-					},
-					"remoteX11.SSH.port": {
-						"type": [
-							"number",
-							"null"
-						],
-						"markdownDescription": "Sets the port to connect to instead of reading from `SSH_CONNECTION`.",
-						"default": null,
-						"scope": "machine"
-					},
-					"remoteX11.SSH.displayCommand": {
-						"type": "string",
-						"markdownDescription": "A command which prints `DISPLAY=<DISPLAY>` followed by a newline, where `<DISPLAY>` is the value of the `DISPLAY` environment variable.",
-						"default": "bash -c \"echo DISPLAY=$DISPLAY\"",
-						"scope": "machine"
-					},
 					"remoteX11.WSL.enable": {
 						"type": "boolean",
 						"markdownDescription": "Set `DISPLAY` for WSL targets?",
