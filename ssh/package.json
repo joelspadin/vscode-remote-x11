@@ -72,7 +72,7 @@
 					"remoteX11.SSH.timeout": {
 						"type": "number",
 						"markdownDescription": "Number of seconds to wait for the SSH shell to print the `DISPLAY` variable. Use 0 to wait forever.",
-						"default": 3
+						"default": 5
 					},
 					"remoteX11.SSH.verboseLogging": {
 						"type": "boolean",

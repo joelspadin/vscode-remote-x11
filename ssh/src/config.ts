@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as process from 'process';
 import * as vscode from 'vscode';
 
-const DefaultTimeout = 3;
+const DefaultTimeout = 5;
 
 export type AuthenticationMethod = 'agent' | 'keyFile';
 
