@@ -77,7 +77,7 @@ const sshHandler: RemoteHandler = {
 		}
 
 		const parts = connection.split(' ');
-		const host = parts[2];
+		const host = stripScopeId(parts[2]);
 		const port = parseInt(parts[3]);
 		const username = os.userInfo().username;
 
@@ -144,4 +144,11 @@ async function setTerminalDisplay(terminal: vscode.Terminal, display: string) {
 			logger.log(`Unknown terminal "${process.name}`);
 			break;
 	}
+}
+
+/**
+ * Removes the scope ID from the end of an IPv6 address.
+ */
+function stripScopeId(addr: string) {
+	return addr.replace(/%\w+$/, '');
 }
