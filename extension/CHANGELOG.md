@@ -3,7 +3,7 @@
 See the [Remote X11 (SSH) Changelog](https://github.com/ChaosinaCan/vscode-remote-x11/blob/master/ssh/CHANGELOG.md#change-log)
 for full changes to the SSH extension. Only new features and notable fixes are listed below.
 
-## Unreleased
+## 1.3.4
 
 - Strip the scope ID off IPv6 addresses from the `SSH_CONNECTION` variable to fix
 	errors when connecting to certain SSH servers.
