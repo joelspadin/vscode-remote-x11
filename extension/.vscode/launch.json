@@ -16,7 +16,10 @@
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
 			],
-			"preLaunchTask": "${defaultBuildTask}"
+			"preLaunchTask": "npm: watch",
+			"presentation": {
+				"group": "run",
+			}
 		},
 		{
 			"name": "Extension Tests",
@@ -30,7 +33,10 @@
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
 			],
-			"preLaunchTask": "npm: test-compile"
+			"preLaunchTask": "npm: test-compile",
+			"presentation": {
+				"group": "test",
+			}
 		}
 	]
 }

@@ -3,6 +3,13 @@
 See the [Remote X11 (SSH) Changelog](https://github.com/ChaosinaCan/vscode-remote-x11/blob/master/ssh/CHANGELOG.md#change-log)
 for full changes to the SSH extension. Only new features and notable fixes are listed below.
 
+## Unreleased
+
+- Switched from modifying `process.env` to the new environment variable collection API.
+- Changes to settings now apply without needing to reload the window.
+- Added a `remoteX11.extraVariables` setting to add more environment variables for remote connections.
+	- This defaults to `LIBGL_ALWAYS_INDIRECT=1`. You can delete this from your settings if that isn't needed.
+
 ## 1.3.4
 
 - Strip the scope ID off IPv6 addresses from the `SSH_CONNECTION` variable to fix

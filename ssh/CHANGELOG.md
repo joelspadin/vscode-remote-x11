@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+
+- The SSH connection can now be restarted with new settings without reloading VS Code.
+
 ## 1.3.3
 
 - Fixed a timeout function that never actually timed out.

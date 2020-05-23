@@ -8,7 +8,7 @@ export function stubConfig(config: Record<string, any>) {
 		.returns(new StubConfiguration(config));
 }
 
-export function stubRemoteName(name: string) {
+export function stubRemoteName(name: string | undefined) {
 	return sinon.stub(vscode.env, 'remoteName').get(() => name);
 }
 

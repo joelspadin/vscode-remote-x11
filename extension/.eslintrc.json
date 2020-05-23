@@ -46,7 +46,8 @@
                     "caseInsensitive": true
                 }
             }
-        ],
+		],
+		"import/no-unresolved": "off",
         "no-throw-literal": "error",
         "semi": "off"
     },
@@ -56,11 +57,12 @@
         },
         "import/resolver": {
             "typescript": {
-                "alwaysTryTypes": true
+				"alwaysTryTypes": true
             }
         }
 	},
 	"ignorePatterns": [
-		"webpack.config.js"
+		"webpack.config.js",
+		"vscode.d.ts"
 	]
 }

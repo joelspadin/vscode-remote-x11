@@ -12,3 +12,13 @@ export class Logger {
 		this.channel.append(end);
 	}
 }
+
+let logger: Logger | undefined;
+
+export function getLogger() {
+	if (!logger) {
+		logger = new Logger('Remote X11');
+	}
+
+	return logger;
+}

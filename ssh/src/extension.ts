@@ -27,10 +27,13 @@ interface ConnectOptions {
 const BASE_PORT = 6000;
 
 const logger = new Logger('Remote X11 (SSH)');
-const conn = new Client();
+let conn: Client;
 
 export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerCommand('remote-x11-ssh.connect', async (options: ConnectOptions) => {
+		conn?.destroy();
+		conn = new Client();
+
 		try {
 			return await createForwardedDisplay(conn, options);
 		} catch (ex) {
@@ -43,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-	conn.end();
+	conn?.destroy();
 }
 
 function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<string> {
