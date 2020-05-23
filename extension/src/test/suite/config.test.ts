@@ -86,10 +86,10 @@ suite('Configuration Test Suite', () => {
 		assert.throws(getExtraVariables);
 	});
 
-	test('getExtraVariables: missing value', () => {
+	test('getExtraVariables: blank value', () => {
 		stubConfig({
 			extraVariables: ['FOO='],
 		});
-		assert.throws(getExtraVariables);
+		assert.deepStrictEqual(getExtraVariables(), new Map([['FOO', '']]));
 	});
 });
