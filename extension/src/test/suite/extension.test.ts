@@ -25,8 +25,7 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableUndefined(context, 'DISPLAY');
-		assertVariableUndefined(context, 'LIBGL_ALWAYS_INDIRECT');
+		assert.deepStrictEqual(getVariables(context), {});
 	});
 
 	test('Container: attached', async () => {
@@ -38,7 +37,10 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableReplaced(context, 'DISPLAY', 'host.docker.internal:1.2');
+		assert.deepStrictEqual(getVariables(context), {
+			DISPLAY: 'host.docker.internal:1.2',
+			LIBGL_ALWAYS_INDIRECT: '1',
+		});
 	});
 
 	test('Container: dev', async () => {
@@ -50,7 +52,10 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableReplaced(context, 'DISPLAY', 'host.docker.internal:1.2');
+		assert.deepStrictEqual(getVariables(context), {
+			DISPLAY: 'host.docker.internal:1.2',
+			LIBGL_ALWAYS_INDIRECT: '1',
+		});
 	});
 
 	test('Container: disabled', async () => {
@@ -61,7 +66,7 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableUndefined(context, 'DISPLAY');
+		assert.deepStrictEqual(getVariables(context), {});
 	});
 
 	test('WSL: enabled', async () => {
@@ -73,7 +78,10 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableReplaced(context, 'DISPLAY', 'localhost:1.2');
+		assert.deepStrictEqual(getVariables(context), {
+			DISPLAY: 'localhost:1.2',
+			LIBGL_ALWAYS_INDIRECT: '1',
+		});
 	});
 
 	test('WSL: disabled', async () => {
@@ -84,7 +92,7 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableUndefined(context, 'DISPLAY');
+		assert.deepStrictEqual(getVariables(context), {});
 	});
 
 	test('SSH: enabled', async () => {
@@ -116,7 +124,10 @@ suite('Extension Test Suite', () => {
 		await activate(context);
 
 		assert(stub.called);
-		assertVariableReplaced(context, 'DISPLAY', 'localhost:1.2');
+		assert.deepStrictEqual(getVariables(context), {
+			DISPLAY: 'localhost:1.2',
+			LIBGL_ALWAYS_INDIRECT: '1',
+		});
 	});
 
 	test('SSH: disabled', async () => {
@@ -130,7 +141,7 @@ suite('Extension Test Suite', () => {
 		await activate(context);
 
 		assert(spy.neverCalledWithMatch('remote-x11-ssh.connect'));
-		assertVariableUndefined(context, 'DISPLAY');
+		assert.deepStrictEqual(getVariables(context), {});
 	});
 
 	test('extraVariables', async () => {
@@ -141,9 +152,12 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableReplaced(context, 'FOO', '1');
-		assertVariableReplaced(context, 'BAR', '2');
-		assertVariableReplaced(context, 'BAZ', '3');
+		assert.deepStrictEqual(getVariables(context), {
+			DISPLAY: 'localhost:0.0',
+			FOO: '1',
+			BAR: '2',
+			BAZ: '3',
+		});
 	});
 
 	test('extraVariables: default', async () => {
@@ -152,7 +166,10 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableReplaced(context, 'LIBGL_ALWAYS_INDIRECT', '1');
+		assert.deepStrictEqual(getVariables(context), {
+			DISPLAY: 'localhost:0.0',
+			LIBGL_ALWAYS_INDIRECT: '1',
+		});
 	});
 
 	test('extraVariables: empty', async () => {
@@ -163,19 +180,20 @@ suite('Extension Test Suite', () => {
 
 		await activate(context);
 
-		assertVariableUndefined(context, 'LIBGL_ALWAYS_INDIRECT');
+		assert.deepStrictEqual(getVariables(context), {
+			DISPLAY: 'localhost:0.0',
+		});
 	});
 });
 
-function assertVariableReplaced(context: vscode.ExtensionContext, variable: string, value: string) {
-	assert.deepStrictEqual(context.environmentVariableCollection.get(variable), {
-		type: vscode.EnvironmentVariableMutatorType.Replace,
-		value,
-	});
-}
+function getVariables(context: vscode.ExtensionContext): Record<string, string> {
+	const variables: Record<string, string> = {};
 
-function assertVariableUndefined(context: vscode.ExtensionContext, variable: string) {
-	assert.strictEqual(context.environmentVariableCollection.get(variable), undefined);
+	context.environmentVariableCollection.forEach((name, mutator) => {
+		variables[name] = mutator.value;
+	});
+
+	return variables;
 }
 
 class MockContext implements vscode.ExtensionContext {
