@@ -130,11 +130,6 @@ DISPLAY = localhost:11.0
 If not, the error message may help you figure out the problem. Solutions to some
 common errrors are listed below.
 
-### Is your X server running?
-
-If you see `DISPLAY = ...` in the Remote X11 logs but nothing shows up when you
-run a GUI application, make sure your X server is running on your local machine.
-
 ### Are the SSH address and port correct?
 
 By default, Remote X11 uses the `SSH_CONNECTION` variable to determine the
@@ -147,23 +142,13 @@ and/or `remoteX11.SSH.port` settings. Note that these settings must be set on
 the remote machine, so open a remote workspace and use the **Remote** tab of
 settings to change them.
 
-### Is SSH authenticating?
+### Is your X server running?
 
-If you see an error like "Cannot parse privateKey: Encrypted OpenSSH private
-key detected, but no passphrase given", passphrase-protected keys are not
-supported with the default authentication method. You must use an SSH Agent
-instead. See **Authentication Settings** above for more details.
+If you see `DISPLAY = ...` in the Remote X11 logs but nothing shows up when you
+run a GUI application, make sure your X server is running on your local machine.
 
-If you see an error like "All configured authentication methods failed", check
-your authentication settings. This usually means that either your public key is
-not in the remote server's `authorized_keys` file, or you haven't added your
-private key to your SSH agent. See **Authentication Settings** above for more
-details.
-
-You can also enable the `remoteX11.SSH.verboseLogging` setting to log technical
-details about the SSH connection to the "Remote X11 (SSH)" logs. This is useful
-for finding issues such as the server not supporting the algorithm used by your
-private key.
+Also make sure the `remoteX11.display` setting matches the display number your
+X server is set to use.
 
 ### Is SSH able to find the display?
 
@@ -173,8 +158,31 @@ a command to print out the `DISPLAY` variable. If this command is failing, try
 changing it with the `remoteX11.SSH.displayCommand` setting in your user (not
 remote) settings.
 
+### Cannot parse privateKey: Encrypted OpenSSH private key detected, but no passphrase given
+
+Passphrase-protected keys are not supported with the default authentication
+method. You must use an SSH Agent instead. See **Authentication Settings** above
+for more details.
+
+### All configured authentication methods failed
+
+Check your authentication settings. This usually means that either your public
+key is not in the remote server's `authorized_keys` file, or you haven't added
+your private key to your SSH agent. See **Authentication Settings** above for
+more details.
+
+### ENOENT: \\.\pipe\openssh-ssh-agent
+
+Windows' SSH Agent is probably not running. From the Start menu, open "Services"
+and make sure the OpenSSH Authentigation Agent service is running.
+
 ### Other issues
 
 If you get any other errors and you can't figure out the cause, create an issue
 at https://github.com/ChaosinaCan/vscode-remote-x11/issues and post your logs
 and I'll try to help.
+
+If you are using SSH, please enable the `remoteX11.SSH.verboseLogging` setting
+to log technical details about the SSH connection to the "Remote X11 (SSH)" logs,
+and include those in your issue report. This is useful for finding issues such
+as the server not supporting the algorithm used by your private key.
