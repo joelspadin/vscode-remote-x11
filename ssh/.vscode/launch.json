@@ -19,7 +19,8 @@
 			"preLaunchTask": "npm: watch",
 			"presentation": {
 				"group": "run",
-			}
+			},
+			"skipFiles": ["async_hooks.js", "inspector_async_hook.js"]
 		},
 		{
 			"name": "Extension Tests",
@@ -36,7 +37,8 @@
 			"preLaunchTask": "npm: test-compile",
 			"presentation": {
 				"group": "test",
-			}
+			},
+			"skipFiles": ["async_hooks.js", "inspector_async_hook.js"]
 		}
 	]
 }
