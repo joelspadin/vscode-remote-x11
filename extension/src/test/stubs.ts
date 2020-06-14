@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import sinon = require('sinon');
 import * as vscode from 'vscode';
 
@@ -34,4 +35,25 @@ export class StubConfiguration implements vscode.WorkspaceConfiguration {
 	): Thenable<void> {
 		throw new Error('Method not implemented.');
 	}
+}
+
+export function stubWslVersion(version: 1 | 2): sinon.SinonStub {
+	const stub = sinon.stub(fs.promises, 'access').withArgs('/run/WSL');
+	if (version === 1) {
+		stub.rejects();
+	} else {
+		stub.resolves();
+	}
+	return stub;
+}
+
+/**
+ * Stubs fs.promises.readFile to return given text.
+ */
+export function stubFile(
+	path: string,
+	options: { encoding?: string | null; flag?: string | number } | string | null | undefined,
+	text: string,
+): sinon.SinonStub {
+	return sinon.stub(fs.promises, 'readFile').withArgs(path, options).resolves(text);
 }

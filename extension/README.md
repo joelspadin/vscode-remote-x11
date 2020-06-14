@@ -22,10 +22,11 @@ below for more details.
 
 ## Access Control
 
-For containers, you will need to either [authorize the container](https://en.wikipedia.org/wiki/X_Window_authorization)
-with your X server or disable access control.
+For containers and WSL 2, you will need to either
+[authorize with your X server](https://en.wikipedia.org/wiki/X_Window_authorization)
+or disable access control.
 
-For SSH and WSL targets, connections to the X server will come from the local
+For SSH and WSL 1 targets, connections to the X server will come from the local
 machine, so you should not need to configure anything for these to work.
 
 ## X11 Forwarding
@@ -175,6 +176,43 @@ more details.
 
 Windows' SSH Agent is probably not running. From the Start menu, open "Services"
 and make sure the OpenSSH Authentigation Agent service is running.
+
+### Authorization required, but no authorization protocol specified
+
+Access control is enabled on your X server. Either authenticate with the server
+or disable access control. See https://en.wikipedia.org/wiki/X_Window_authorization
+for more details.
+
+### Error: Can't open display: ... on WSL 2
+
+If you get this error when running an application from WSL 2, the connection is
+probably being blocked by the Windows firewall. You can edit the firewall rules
+to allow it:
+
+1. From the Start menu, open Windows Defender Firewall, then select "Advanced settings"
+   from the left sidebar. This should open a window titled "Windows Defender Firewall
+   with Advanced Security"
+2. Select "Inbound Rules" on the left.
+3. Find the rule with the following settings:
+	* **Name:** the name of your X server, e.g. "VcXsrv windows xserver"
+	* **Action:** Block
+	* **Protocol:** TCP
+4. Right-click the rule and select "Properties".
+5. On the General tab, change the action to "Allow the connection":
+
+   ![Firewall rule, general tab](./media/firewall-general.png)
+
+6. On the Scope tab, change "Remote IP address" to "These IP addresses"
+   and add the following values:
+
+   * `172.16.0.0/12`
+   * `192.168.0.0/16`
+
+   ![Firewall rule, scope tab](./media/firewall-scope.png)
+
+7. Select OK to save your changes.
+
+See https://github.com/microsoft/WSL/issues/4139 for more details.
 
 ### Other issues
 

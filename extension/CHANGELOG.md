@@ -5,6 +5,7 @@ for full changes to the SSH extension. Only new features and notable fixes are l
 
 ## Unreleased
 
+- Added support for WSL 2.
 - Switched from modifying `process.env` to the new environment variable collection API.
 - Changes to settings now apply without needing to reload the window.
 - Added a `remoteX11.extraVariables` setting to add more environment variables for remote connections.
