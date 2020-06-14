@@ -29,7 +29,7 @@ const BASE_PORT = 6000;
 const logger = new Logger('Remote X11 (SSH)');
 let conn: Client;
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
 	const disposable = vscode.commands.registerCommand('remote-x11-ssh.connect', async (options: ConnectOptions) => {
 		conn?.destroy();
 		conn = new Client();
@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-export function deactivate() {
+export function deactivate(): void {
 	conn?.destroy();
 }
 

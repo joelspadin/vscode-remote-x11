@@ -6,7 +6,7 @@ import { RemoteHandler } from './RemoteHandler';
 import { SshHandler } from './SshHandler';
 import { WslHandler } from './WslHandler';
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
 	const handler = getRemoteHandler(context);
 
 	if (handler) {
@@ -18,7 +18,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	}
 }
 
-export function deactivate() {
+export function deactivate(): void {
 	// Nothing to do.
 }
 

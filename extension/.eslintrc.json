@@ -20,10 +20,9 @@
         "prettier/@typescript-eslint"
     ],
     "rules": {
-        "@typescript-eslint/class-name-casing": "error",
-        "@typescript-eslint/explicit-function-return-type": "off",
+		"@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unused-vars": ["error",
+        "@typescript-eslint/no-unused-vars": ["warn",
             {
                 "argsIgnorePattern": "^_"
             }
@@ -33,7 +32,7 @@
         "curly": "error",
         "eqeqeq": "error",
         "import/order": [
-            "error",
+            "warn",
             {
                 "groups": [
                     ["builtin", "external", "internal"],
@@ -47,7 +46,6 @@
                 }
             }
 		],
-		"import/no-unresolved": "off",
         "no-throw-literal": "error",
         "semi": "off"
     },
@@ -62,7 +60,6 @@
         }
 	},
 	"ignorePatterns": [
-		"webpack.config.js",
-		"vscode.d.ts"
+		"webpack.config.js"
 	]
 }

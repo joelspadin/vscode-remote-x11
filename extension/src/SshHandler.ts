@@ -6,11 +6,11 @@ import { getLogger } from './logger';
 import { RemoteHandler } from './RemoteHandler';
 
 export class SshHandler extends RemoteHandler {
-	public get enabled() {
+	public get enabled(): boolean {
 		return getConfig('SSH.enable', true);
 	}
 
-	public get displaySettings() {
+	public get displaySettings(): string[] {
 		return [
 			'remoteX11.display',
 			'remoteX11.screen',
@@ -23,7 +23,7 @@ export class SshHandler extends RemoteHandler {
 		];
 	}
 
-	public async getDisplay() {
+	public async getDisplay(): Promise<string | undefined> {
 		const connection = process.env['SSH_CONNECTION'];
 
 		if (!connection) {
@@ -48,6 +48,6 @@ export class SshHandler extends RemoteHandler {
 /**
  * Removes the scope ID from the end of an IPv6 address.
  */
-export function stripScopeId(addr: string) {
+export function stripScopeId(addr: string): string {
 	return addr.replace(/%\w+$/, '');
 }

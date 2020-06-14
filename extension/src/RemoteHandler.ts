@@ -23,7 +23,7 @@ export abstract class RemoteHandler implements vscode.Disposable {
 		this.disposables.forEach((s) => s.dispose());
 	}
 
-	public async apply() {
+	public async apply(): Promise<void> {
 		if (!this.enabled) {
 			getLogger().log(`Forwarding is disabled for remote "${vscode.env.remoteName}".`);
 			this.clearEnvironment();
@@ -48,7 +48,7 @@ export abstract class RemoteHandler implements vscode.Disposable {
 		}
 	}
 
-	protected onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent) {
+	protected onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): void {
 		if (!e.affectsConfiguration('remoteX11')) {
 			return;
 		}

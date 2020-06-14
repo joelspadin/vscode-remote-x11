@@ -9,11 +9,11 @@ export function getConfig<T>(name: string, defaultValue: T): T {
 	return config.get(name, defaultValue);
 }
 
-export function getDisplay(host: string) {
+export function getDisplay(host: string): string {
 	return `${host}:${getConfig('display', 0)}.${getConfig('screen', 0)}`;
 }
 
-export function getExtraVariables() {
+export function getExtraVariables(): Map<string, string> {
 	const variables = new Map<string, string>();
 
 	for (const line of getConfig('extraVariables', DefaultExtraVariables)) {

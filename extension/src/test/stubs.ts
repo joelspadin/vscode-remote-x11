@@ -1,14 +1,14 @@
 import sinon = require('sinon');
 import * as vscode from 'vscode';
 
-export function stubConfig(config: Record<string, any>) {
+export function stubConfig(config: Record<string, any>): sinon.SinonStub {
 	return sinon
 		.stub(vscode.workspace, 'getConfiguration')
 		.withArgs('remoteX11')
 		.returns(new StubConfiguration(config));
 }
 
-export function stubRemoteName(name: string | undefined) {
+export function stubRemoteName(name: string | undefined): sinon.SinonStub {
 	return sinon.stub(vscode.env, 'remoteName').get(() => name);
 }
 
@@ -17,7 +17,7 @@ export class StubConfiguration implements vscode.WorkspaceConfiguration {
 
 	get<T>(section: string): T | undefined;
 	get<T>(section: string, defaultValue: T): T;
-	get(section: any, defaultValue?: any) {
+	get(section: string, defaultValue?: unknown): unknown {
 		return this.config[section] ?? defaultValue;
 	}
 	has(section: string): boolean {
@@ -28,7 +28,7 @@ export class StubConfiguration implements vscode.WorkspaceConfiguration {
 	}
 	update(
 		_section: string,
-		_value: any,
+		_value: unknown,
 		_configurationTarget?: boolean | vscode.ConfigurationTarget | undefined,
 		_overrideInLanguage?: boolean | undefined,
 	): Thenable<void> {

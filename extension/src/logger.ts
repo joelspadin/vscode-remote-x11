@@ -7,15 +7,14 @@ export class Logger {
 		this.channel = vscode.window.createOutputChannel(name);
 	}
 
-	public log(message: any, end = '\n') {
-		this.channel.append(message.toString());
-		this.channel.append(end);
+	public log(message: unknown, end = '\n'): void {
+		this.channel.append(`${message}${end}`);
 	}
 }
 
 let logger: Logger | undefined;
 
-export function getLogger() {
+export function getLogger(): Logger {
 	if (!logger) {
 		logger = new Logger('Remote X11');
 	}
