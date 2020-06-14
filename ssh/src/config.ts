@@ -13,47 +13,47 @@ export function getConfig<T>(name: string, defaultValue: T): T {
 	return config.get(name, defaultValue);
 }
 
-export function getDisplay() {
+export function getDisplay(): number {
 	return getConfig('display', 0);
 }
 
-export function getScreen() {
+export function getScreen(): number {
 	return getConfig('screen', 0);
 }
 
-export function getAuthenticationMethod() {
+export function getAuthenticationMethod(): AuthenticationMethod {
 	return getConfig<AuthenticationMethod>('SSH.authenticationMethod', 'keyFile');
 }
 
-export function getAgent() {
+export function getAgent(): string {
 	return getConfig('SSH.agent', '') || getDefaultAgent();
 }
 
-export function getPrivateKey() {
+export function getPrivateKey(): string {
 	return resolveHome(getConfig('SSH.privateKey', '~/.ssh/id_rsa'));
 }
 
-export function getServerHost() {
+export function getServerHost(): string | null {
 	return getConfig<string | null>('SSH.host', null);
 }
 
-export function getServerPort() {
+export function getServerPort(): number | null {
 	return getConfig<number | null>('SSH.port', null);
 }
 
-export function getDisplayCommand() {
+export function getDisplayCommand(): string {
 	return getConfig('SSH.displayCommand', DefaultDisplayCommand);
 }
 
-export function getTimeout() {
+export function getTimeout(): number {
 	return getConfig('SSH.timeout', DefaultTimeout);
 }
 
-export function isVerboseLoggingEnabled() {
+export function isVerboseLoggingEnabled(): boolean {
 	return getConfig('SSH.verboseLogging', false);
 }
 
-function getDefaultAgent() {
+function getDefaultAgent(): string {
 	if (os.platform() === 'win32') {
 		return '\\\\.\\pipe\\openssh-ssh-agent';
 	} else {
@@ -67,7 +67,7 @@ function getDefaultAgent() {
 	}
 }
 
-function resolveHome(file: string) {
+function resolveHome(file: string): string {
 	if (file === '~') {
 		return os.homedir();
 	}
