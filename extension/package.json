@@ -112,6 +112,7 @@
 		"webpack-cli": "^3.3.11"
 	},
 	"dependencies": {
+		"@types/vscode": "^1.46.0",
 		"find-process": "^1.4.3"
 	},
 	"prettier": {
