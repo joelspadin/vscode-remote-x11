@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## 1.4.0
 
 - The SSH connection can now be restarted with new settings without reloading VS Code.
 

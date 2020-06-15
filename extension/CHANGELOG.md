@@ -3,7 +3,7 @@
 See the [Remote X11 (SSH) Changelog](https://github.com/ChaosinaCan/vscode-remote-x11/blob/master/ssh/CHANGELOG.md#change-log)
 for full changes to the SSH extension. Only new features and notable fixes are listed below.
 
-## Unreleased
+## 1.4.0
 
 - Added support for WSL 2.
 - Switched from modifying `process.env` to the new environment variable collection API.
