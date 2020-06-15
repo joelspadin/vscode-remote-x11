@@ -200,7 +200,7 @@ to allow it:
 4. Right-click the rule and select "Properties".
 5. On the General tab, change the action to "Allow the connection":
 
-   ![Firewall rule, general tab](./media/firewall-general.png)
+   ![Firewall rule, general tab](https://github.com/ChaosinaCan/vscode-remote-x11/raw/master/extension/media/firewall-general.png)
 
 6. On the Scope tab, change "Remote IP address" to "These IP addresses"
    and add the following values:
@@ -208,7 +208,7 @@ to allow it:
    * `172.16.0.0/12`
    * `192.168.0.0/16`
 
-   ![Firewall rule, scope tab](./media/firewall-scope.png)
+   ![Firewall rule, scope tab](https://github.com/ChaosinaCan/vscode-remote-x11/raw/master/extension/media/firewall-scope.png)
 
 7. Select OK to save your changes.
 

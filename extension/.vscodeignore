@@ -2,6 +2,7 @@
 .vscode/**
 
 # Ignore source files
+media/**
 src/**
 
 # Ignore non-webpacked dependencies
