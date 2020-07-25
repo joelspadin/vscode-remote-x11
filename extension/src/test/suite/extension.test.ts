@@ -231,6 +231,7 @@ class MockContext implements vscode.ExtensionContext {
 	public readonly workspaceState = new MockMemento();
 	public readonly globalState = new MockMemento();
 
+	public readonly extensionMode = vscode.ExtensionMode.Test;
 	public readonly extensionUri = vscode.Uri.file('/fake/path');
 	public get extensionPath() {
 		return this.extensionUri.fsPath;

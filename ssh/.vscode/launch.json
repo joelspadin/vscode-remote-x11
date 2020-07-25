@@ -20,7 +20,7 @@
 			"presentation": {
 				"group": "run",
 			},
-			"skipFiles": ["async_hooks.js", "inspector_async_hook.js"]
+			"smartStep": true
 		},
 		{
 			"name": "Extension Tests",
@@ -38,7 +38,7 @@
 			"presentation": {
 				"group": "test",
 			},
-			"skipFiles": ["async_hooks.js", "inspector_async_hook.js"]
+			"smartStep": true
 		}
 	]
 }
