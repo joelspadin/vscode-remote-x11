@@ -14,11 +14,13 @@ export function getConfig<T>(name: string, defaultValue: T): T {
 }
 
 export function getDisplay(): number {
-	return getConfig('display', 0);
+	const { display } = getLocalDisplay();
+	return display ?? getConfig('display', 0);
 }
 
 export function getScreen(): number {
-	return getConfig('screen', 0);
+	const { screen } = getLocalDisplay();
+	return screen ?? getConfig('screen', 0);
 }
 
 export function getAuthenticationMethod(): AuthenticationMethod {
@@ -65,6 +67,19 @@ function getDefaultAgent(): string {
 
 		return socket;
 	}
+}
+
+function getLocalDisplay(): { display?: number; screen?: number } {
+	const variable = process.env['DISPLAY'];
+	if (variable) {
+		const match = variable.match(/:(\d+)(?:(\d+))?/);
+		if (match) {
+			const display = parseInt(match[1]);
+			const screen = parseInt(match[2] || '0');
+			return { display, screen };
+		}
+	}
+	return { display: undefined, screen: undefined };
 }
 
 function resolveHome(file: string): string {
