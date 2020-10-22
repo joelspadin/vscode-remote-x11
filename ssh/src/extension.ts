@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import { Socket } from 'net';
 import { Client, ClientChannel, X11Options, X11Details, ConnectConfig } from 'ssh2';
 import * as vscode from 'vscode';
+import { getJumpHost, resolveHome } from './config';
+const SSHConfig = require('ssh-config')
 
 import {
 	getScreen,
@@ -14,6 +16,8 @@ import {
 	getServerHost,
 	getServerPort,
 	getDisplayCommand,
+	getPreferConfig,
+	getSshConfig
 } from './config';
 import { Logger } from './logger';
 import { withTimeout } from './timeout';
@@ -25,6 +29,7 @@ interface ConnectOptions {
 }
 
 const BASE_PORT = 6000;
+const JUMP_FORMAT = 'user@host:port';
 
 const logger = new Logger('Remote X11 (SSH)');
 let conn: Client;
@@ -51,11 +56,7 @@ export function deactivate(): void {
 
 function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const { username } = options;
-		const host = getServerHost() || options.host;
-		const port = getServerPort() || options.port;
-
-		logger.log(`Connecting to ${username}@${host} port ${port}`);
+		logger.log("started");
 
 		conn.on('x11', handleX11);
 
@@ -63,6 +64,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 		// as long as VS Code is running so that we can point VS Code to its
 		// display.
 		conn.on('ready', () => {
+			logger.log("Creating forwarding shell");
 			resolve(createForwardingShell(conn));
 		});
 
@@ -70,14 +72,120 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 			reject(err);
 		});
 
-		conn.connect({
-			username,
-			host,
-			port,
-			debug: isVerboseLoggingEnabled() ? logVerbose : undefined,
-			...getAuthOptions(),
-		});
+		const preferConfig = getPreferConfig();
+		const jumpHost = getJumpHost();
+
+		if (preferConfig) {
+			logger.log("preferred");
+
+			// const connection = process.env['SSH_CONNECTION'];
+			const connection = '192.168.5.45';
+
+			if (!connection) {
+				reject("Couldn't get SSH_CONNECTION");
+			}
+
+			logger.log("reading");
+			fs.readFile(resolveHome(getSshConfig()), (err, data) => { 
+				if (err) {
+					reject(err); // TODO: Suggest turning off prefer
+				}
+				try {
+					logger.log(data.toString());
+					const config = SSHConfig.parse(data.toString());
+					logger.log(config);
+					const match = config.find((line: any) => line.param == 'HostName' && line.value == connection);
+
+					logger.log(match);
+
+					const { username } = options;
+					const host = getServerHost() || options.host;
+					const port = getServerPort() || options.port;
+			
+					connect(conn, username, host, port);
+				} catch(err) {
+					reject(err);
+				}
+			});
+		} else if (jumpHost) {
+			resolve(connectViaJump(conn, options, jumpHost));
+		} else {
+			const { username } = options;
+			const host = getServerHost() || options.host;
+			const port = getServerPort() || options.port;
+	
+			connect(conn, username, host, port);
+		}
 	});
+}
+
+function connect(conn: Client, username: string, host: string, port: number): void {
+	logger.log(`Connecting to ${username}@${host} port ${port}`);
+	
+	conn.connect({
+		username,
+		host,
+		port,
+		debug: isVerboseLoggingEnabled() ? logVerbose : undefined,
+		...getAuthOptions(),
+	});
+}
+
+function connectViaJump(destination: Client, destinationOptions: ConnectOptions, jumpHost: string): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const at = jumpHost.indexOf('@');
+		const colon = jumpHost.indexOf(':');
+	
+		if (at < 0 || colon < 0) {
+			reject(`Invalid jump host.  It should be: ${JUMP_FORMAT}`)
+		}
+		const jumpOptions: ConnectOptions = {
+			username: jumpHost.substring(0, at),
+			host: jumpHost.substring(at + 1, colon),
+			port: Number(jumpHost.substring(colon + 1))
+		}
+
+		logger.log(`Connecting to ${getHostString(destinationOptions)} via ${getHostString(jumpOptions)}`);
+
+		const jump = new Client();
+
+		destination.on('close', () => {
+			logger.log(`Closing ${getHostString(jumpOptions)} along with ${getHostString(destinationOptions)}`);
+			jump.end();
+		})
+
+		logger.log(`Connecting to ${getHostString(jumpOptions)}`);
+		jump
+			.on('ready', () => {
+				jump.forwardOut('127.0.0.1', 12345, destinationOptions.host, destinationOptions.port, (err, stream) => {
+					if (err) {
+						reject(err);
+						return jump.end();
+					}
+					logger.log(`Connecting to ${getHostString(destinationOptions)}`);
+					destination.connect({
+						sock: stream,
+						...getConnectConfig(destinationOptions)
+					});
+				});
+			})
+			.on('error', (err) => {
+				reject(err);
+			})
+			.connect(getConnectConfig(jumpOptions));
+	});
+}
+
+function getHostString(options: ConnectOptions): string {
+	return `${options.username}@${options.host} port ${options.port}`;
+}
+
+function getConnectConfig(options: ConnectOptions) {
+	return {
+		...options,
+		debug: isVerboseLoggingEnabled() ? logVerbose : undefined,
+		...getAuthOptions()
+	}
 }
 
 function createForwardingShell(conn: Client): Promise<string> {
@@ -120,11 +228,15 @@ function getAuthOptions(): Partial<ConnectConfig> {
 
 	switch (method) {
 		case 'agent':
+			logger.log(`using agent`);
+
 			return {
 				agent: getAgent(),
 			};
 
 		case 'keyFile':
+			logger.log(`using private key`);
+
 			return {
 				privateKey: fs.readFileSync(getPrivateKey()),
 			};

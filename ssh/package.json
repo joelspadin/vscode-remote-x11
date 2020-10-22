@@ -14,7 +14,7 @@
 	},
 	"publisher": "spadin",
 	"license": "MIT",
-	"version": "1.4.0",
+	"version": "1.5.0",
 	"engines": {
 		"vscode": "^1.47.0"
 	},
@@ -99,6 +99,22 @@
 						"type": "boolean",
 						"description": "Enable verbose logging for SSH connections.",
 						"default": false
+					},
+					"remoteX11.SSH.jumpHost": {
+						"type": "string",
+						"markdownDescription": "Connect via jumpHost `USER@HOST:PORT` to `remoteX11.SSH.host`",
+						"default": null,
+						"scope": "machine"
+					},
+					"remoteX11.SSH.preferConfig": {
+						"type": "boolean",
+						"description": "Experimental: Use remoteX11.SSH.sshConfig over other settings",
+						"default": false
+					},
+					"remoteX11.SSH.sshConfig": {
+						"type": "string",
+						"description": "ssh config location",
+						"default": "~/.ssh/config"
 					}
 				}
 			}
@@ -129,7 +145,7 @@
 		"eslint-plugin-import": "^2.22.0",
 		"eslint-plugin-prettier": "^3.1.4",
 		"glob": "^7.1.5",
-		"mocha": "^8.0.1",
+		"mocha": "^8.2.0",
 		"prettier": "^2.0.5",
 		"sinon": "^9.0.2",
 		"ts-loader": "^8.0.1",
@@ -140,6 +156,7 @@
 		"webpack-cli": "^3.3.12"
 	},
 	"dependencies": {
+		"ssh-config": "^4.0.4",
 		"ssh2": "^0.8.9"
 	},
 	"prettier": {
