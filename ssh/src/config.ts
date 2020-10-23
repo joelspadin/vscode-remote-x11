@@ -59,7 +59,7 @@ export function getJumpHost(): string | null {
 }
 
 export function getPreferConfig(): boolean {
-	return getConfig('SSH.preConfig', false);
+	return getConfig('SSH.preferConfig', false);
 }
 
 export function getSshConfig(): string {

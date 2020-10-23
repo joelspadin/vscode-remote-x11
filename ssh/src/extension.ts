@@ -58,76 +58,128 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 	return new Promise((resolve, reject) => {
 		logger.log("started");
 
-		conn.on('x11', handleX11);
-
-		// Create an interactive shell with X11 forwarding and leave it open
-		// as long as VS Code is running so that we can point VS Code to its
-		// display.
-		conn.on('ready', () => {
-			logger.log("Creating forwarding shell");
-			resolve(createForwardingShell(conn));
-		});
-
-		conn.on('error', (err) => {
-			reject(err);
-		});
+		// Define callbacks that apply to all connection strategies
+		conn.on('x11', handleX11)
+			.on('ready', () => {
+				// Create an interactive shell with X11 forwarding and leave it open
+				// as long as VS Code is running so that we can point VS Code to its
+				// display.
+				logger.log("Creating forwarding shell");
+				resolve(createForwardingShell(conn));
+			})
+			.on('error', (err) => {
+				reject(err);
+			});
 
 		const preferConfig = getPreferConfig();
-		const jumpHost = getJumpHost();
+		let jumpHost = getJumpHost();
+		let destinationOptions: ConnectOptions | null = null;
 
 		if (preferConfig) {
-			logger.log("preferred");
+			const sshConfig = resolveHome(getSshConfig());
+			const host = getServerHost() || options.host;
 
-			// const connection = process.env['SSH_CONNECTION'];
-			const connection = '192.168.5.45';
+			logger.log(`Attempting to parse ${sshConfig} for ssh configuration of ${host}`);
 
-			if (!connection) {
-				reject("Couldn't get SSH_CONNECTION");
-			}
-
-			logger.log("reading");
 			fs.readFile(resolveHome(getSshConfig()), (err, data) => { 
-				if (err) {
-					reject(err); // TODO: Suggest turning off prefer
-				}
 				try {
-					logger.log(data.toString());
+					if (err) throw err;
+
 					const config = SSHConfig.parse(data.toString());
-					logger.log(config);
-					const match = config.find((line: any) => line.param == 'HostName' && line.value == connection);
 
-					logger.log(match);
+					let hostConfig = null;
+					for (const line of config) {
+						if (line.param === 'Host') {
+							if (line.value === host) {
+								hostConfig = line.config;
+								break;
+							} else {
+								const hostNameMatch = line.config.find((line:any) => line.param === 'HostName' && line.value === host);
+								if (hostNameMatch) {
+									logger.log(`${host} matches ${line.value}`);
+									hostConfig = line.config;
+									break;
+								}
+							}
+						}
+					}
 
-					const { username } = options;
-					const host = getServerHost() || options.host;
-					const port = getServerPort() || options.port;
-			
-					connect(conn, username, host, port);
+					if (!hostConfig) {
+						throw new Error(`Could not find ${host}`);
+					}
+
+					const configUser = hostConfig.find((line:any) => line.param === 'User');
+					const configPort = hostConfig.find((line:any) => line.param === 'Port');
+					const configHost = hostConfig.find((line:any) => line.param === 'HostName');
+					const configProxy = hostConfig.find((line:any) => line.param === 'ProxyCommand');
+
+					destinationOptions = {
+						username: configUser ? configUser.value : options.username,
+						port: configPort ? configPort.value : options.port,
+						host: configHost ? configHost.value : options.host
+					}
+
+					// If it's set to proxy
+					if (configProxy) {
+						const proxyCommand: string = configProxy.value;
+						// For now we just handle ssh forwards.  I don't know what other edge cases are out there
+						if (proxyCommand.startsWith('ssh')) {
+							const args = proxyCommand.split(' ');
+							const jumpHostArg = args[args.length-1];
+
+							// forward channel -W
+							const forwardArg = args.indexOf('-W');
+							if (forwardArg > 0) { 
+								const hostAndPort = args[forwardArg + 1].split(':');
+								// %h is the config host, %p is the config port
+								destinationOptions.host = hostAndPort[0] === '%h' ? configHost : hostAndPort[0];
+								destinationOptions.port = hostAndPort[1] === '%p' ? configPort : hostAndPort[1];
+
+								// Look for a defined jumpHost
+								const jumpHostBlock = config.find((line:any) => line.param === 'Host' && line.value === jumpHost);
+								if (jumpHostBlock) {
+									const jumpHostNameNode = jumpHostBlock.config.find((line:any) => line.param === 'HostName');
+									const jumpHostName: string = jumpHostNameNode ? jumpHostNameNode.value : options.host;
+									const jumpPortNode = jumpHostBlock.config.find((line:any) => line.param === 'Port').value;
+									const jumpPort: string = jumpPortNode ? jumpPortNode.value : options.port;
+									const jumpUserNode = jumpHostBlock.config.find((line:any) => line.param === 'User');
+									const jumpUser: string = jumpUserNode ? jumpUserNode.value : options.username;
+									jumpHost = `${jumpUser}@${jumpHostName}:${jumpPort}`
+								} else {
+									// port -p
+									const jumpPortArg = args.indexOf('-p');
+									const jumpPort = jumpPortArg > 0 ? args[jumpPortArg + 1] : 22;
+
+									// username@host (username optional)
+									const jumpUserAndHost = jumpHostArg.split('@');
+									const jumpUser = jumpUserAndHost.length > 1 ? jumpUserAndHost[0]: options.username;
+									const jumpHostName = jumpUserAndHost[jumpUserAndHost.length-1];
+									jumpHost = `${jumpUser}@${jumpHostName}:${jumpPort}`
+								}
+							}
+						}
+					}
 				} catch(err) {
-					reject(err);
+					logger.log(`Failed to process ${sshConfig}:\n${err}\n\nAttempting to use extension settings.`);
 				}
 			});
-		} else if (jumpHost) {
+		}
+
+		// Populate the connection settings if not already populated
+		if (!destinationOptions) {
+			destinationOptions = { 
+				username: options.username,
+				host: getServerHost() || options.host,
+				port: getServerPort() || options.port
+			}
+		}
+	
+		if (jumpHost) {
 			resolve(connectViaJump(conn, options, jumpHost));
 		} else {
-			const { username } = options;
-			const host = getServerHost() || options.host;
-			const port = getServerPort() || options.port;
-	
-			connect(conn, username, host, port);
+			logger.log(`Connecting to ${getHostString(destinationOptions)}`);
+			conn.connect(getConnectConfig(destinationOptions));
 		}
-	});
-}
-
-function connect(conn: Client, username: string, host: string, port: number): void {
-	logger.log(`Connecting to ${username}@${host} port ${port}`);
-	
-	conn.connect({
-		username,
-		host,
-		port,
-		debug: isVerboseLoggingEnabled() ? logVerbose : undefined,
-		...getAuthOptions(),
 	});
 }
 
@@ -139,6 +191,7 @@ function connectViaJump(destination: Client, destinationOptions: ConnectOptions,
 		if (at < 0 || colon < 0) {
 			reject(`Invalid jump host.  It should be: ${JUMP_FORMAT}`)
 		}
+		
 		const jumpOptions: ConnectOptions = {
 			username: jumpHost.substring(0, at),
 			host: jumpHost.substring(at + 1, colon),
@@ -228,15 +281,11 @@ function getAuthOptions(): Partial<ConnectConfig> {
 
 	switch (method) {
 		case 'agent':
-			logger.log(`using agent`);
-
 			return {
 				agent: getAgent(),
 			};
 
 		case 'keyFile':
-			logger.log(`using private key`);
-
 			return {
 				privateKey: fs.readFileSync(getPrivateKey()),
 			};
