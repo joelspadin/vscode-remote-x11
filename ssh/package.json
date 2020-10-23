@@ -102,19 +102,36 @@
 					},
 					"remoteX11.SSH.jumpHost": {
 						"type": "string",
-						"markdownDescription": "Connect via jumpHost `USER@HOST:PORT` to `remoteX11.SSH.host`",
+						"markdownDescription": "Connect via `jumpHost` to `remoteX11.SSH.host`",
+						"default": null,
+						"scope": "machine"
+					},
+					"remoteX11.SSH.jumpUser": {
+						"type": "string",
+						"markdownDescription": "Connect via jumpHost to `remoteX11.SSH.host` (defaults to `remoteX11.SSH.user`)",
+						"default": null,
+						"scope": "machine"
+					},
+					"remoteX11.SSH.jumpPort": {
+						"type": [
+							"number",
+							"null"
+						],						
+						"markdownDescription": "Connect via jumpHost `remoteX11.SSH.host` (defaults to `remoteX11.SSH.port`)",
 						"default": null,
 						"scope": "machine"
 					},
 					"remoteX11.SSH.preferConfig": {
 						"type": "boolean",
 						"description": "Experimental: Use remoteX11.SSH.sshConfig over other settings",
-						"default": false
+						"default": false,
+						"scope":"application"
 					},
 					"remoteX11.SSH.sshConfig": {
 						"type": "string",
 						"description": "ssh config location",
-						"default": "~/.ssh/config"
+						"default": "~/.ssh/config",
+						"scope":"application"
 					}
 				}
 			}

@@ -58,6 +58,14 @@ export function getJumpHost(): string | null {
 	return getConfig('SSH.jumpHost', null);
 }
 
+export function getJumpUser(): string | null {
+	return getConfig('SSH.jumpUser', null);
+}
+
+export function getJumpPort(): number | null {
+	return getConfig('SSH.jumpPort', null);
+}
+
 export function getPreferConfig(): boolean {
 	return getConfig('SSH.preferConfig', false);
 }

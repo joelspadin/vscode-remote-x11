@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import { Socket } from 'net';
 import { Client, ClientChannel, X11Options, X11Details, ConnectConfig } from 'ssh2';
 import * as vscode from 'vscode';
-import { getJumpHost, resolveHome } from './config';
+import { getJumpHost, getJumpPort, getJumpUser, resolveHome } from './config';
 const SSHConfig = require('ssh-config')
 
 import {
@@ -72,8 +72,24 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 			});
 
 		const preferConfig = getPreferConfig();
-		let jumpHost = getJumpHost();
-		let destinationOptions: ConnectOptions | null = null;
+		const jumpHost = getJumpHost();
+		let destinationOptions: ConnectOptions  = { 
+			username: options.username,
+			host: getServerHost() || options.host,
+			port: getServerPort() || options.port
+		}
+
+		// Populate jump host falling back on server settings for user and port
+		let jumpOptions: ConnectOptions | null = null;
+		if (jumpHost) {
+			const jumpUser = getJumpUser();
+			const jumpPort = getJumpPort();
+			jumpOptions = {
+				username: jumpUser ? jumpUser : options.username,
+				host: jumpHost,
+				port: jumpPort ? jumpPort: options.port
+			}
+		}
 
 		if (preferConfig) {
 			const sshConfig = resolveHome(getSshConfig());
@@ -81,101 +97,107 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 
 			logger.log(`Attempting to parse ${sshConfig} for ssh configuration of ${host}`);
 
-			fs.readFile(resolveHome(getSshConfig()), (err, data) => { 
-				try {
-					if (err) throw err;
+			try {
+				const data = fs.readFileSync(resolveHome(getSshConfig()))
 
-					const config = SSHConfig.parse(data.toString());
+				const config = SSHConfig.parse(data.toString());
 
-					let hostConfig = null;
-					for (const line of config) {
-						if (line.param === 'Host') {
-							if (line.value === host) {
+				let hostConfig = null;
+				for (const line of config) {
+					if (line.param === 'Host') {
+						if (line.value === host) {
+							hostConfig = line.config;
+							break;
+						} else {
+							const hostNameMatch = line.config.find((line:any) => line.param === 'HostName' && line.value === host);
+							if (hostNameMatch) {
+								logger.log(`${host} matches ${line.value}`);
 								hostConfig = line.config;
 								break;
-							} else {
-								const hostNameMatch = line.config.find((line:any) => line.param === 'HostName' && line.value === host);
-								if (hostNameMatch) {
-									logger.log(`${host} matches ${line.value}`);
-									hostConfig = line.config;
-									break;
-								}
 							}
 						}
 					}
-
-					if (!hostConfig) {
-						throw new Error(`Could not find ${host}`);
-					}
-
-					const configUser = hostConfig.find((line:any) => line.param === 'User');
-					const configPort = hostConfig.find((line:any) => line.param === 'Port');
-					const configHost = hostConfig.find((line:any) => line.param === 'HostName');
-					const configProxy = hostConfig.find((line:any) => line.param === 'ProxyCommand');
-
-					destinationOptions = {
-						username: configUser ? configUser.value : options.username,
-						port: configPort ? configPort.value : options.port,
-						host: configHost ? configHost.value : options.host
-					}
-
-					// If it's set to proxy
-					if (configProxy) {
-						const proxyCommand: string = configProxy.value;
-						// For now we just handle ssh forwards.  I don't know what other edge cases are out there
-						if (proxyCommand.startsWith('ssh')) {
-							const args = proxyCommand.split(' ');
-							const jumpHostArg = args[args.length-1];
-
-							// forward channel -W
-							const forwardArg = args.indexOf('-W');
-							if (forwardArg > 0) { 
-								const hostAndPort = args[forwardArg + 1].split(':');
-								// %h is the config host, %p is the config port
-								destinationOptions.host = hostAndPort[0] === '%h' ? configHost : hostAndPort[0];
-								destinationOptions.port = hostAndPort[1] === '%p' ? configPort : hostAndPort[1];
-
-								// Look for a defined jumpHost
-								const jumpHostBlock = config.find((line:any) => line.param === 'Host' && line.value === jumpHost);
-								if (jumpHostBlock) {
-									const jumpHostNameNode = jumpHostBlock.config.find((line:any) => line.param === 'HostName');
-									const jumpHostName: string = jumpHostNameNode ? jumpHostNameNode.value : options.host;
-									const jumpPortNode = jumpHostBlock.config.find((line:any) => line.param === 'Port').value;
-									const jumpPort: string = jumpPortNode ? jumpPortNode.value : options.port;
-									const jumpUserNode = jumpHostBlock.config.find((line:any) => line.param === 'User');
-									const jumpUser: string = jumpUserNode ? jumpUserNode.value : options.username;
-									jumpHost = `${jumpUser}@${jumpHostName}:${jumpPort}`
-								} else {
-									// port -p
-									const jumpPortArg = args.indexOf('-p');
-									const jumpPort = jumpPortArg > 0 ? args[jumpPortArg + 1] : 22;
-
-									// username@host (username optional)
-									const jumpUserAndHost = jumpHostArg.split('@');
-									const jumpUser = jumpUserAndHost.length > 1 ? jumpUserAndHost[0]: options.username;
-									const jumpHostName = jumpUserAndHost[jumpUserAndHost.length-1];
-									jumpHost = `${jumpUser}@${jumpHostName}:${jumpPort}`
-								}
-							}
-						}
-					}
-				} catch(err) {
-					logger.log(`Failed to process ${sshConfig}:\n${err}\n\nAttempting to use extension settings.`);
 				}
-			});
-		}
 
-		// Populate the connection settings if not already populated
-		if (!destinationOptions) {
-			destinationOptions = { 
-				username: options.username,
-				host: getServerHost() || options.host,
-				port: getServerPort() || options.port
+				if (!hostConfig) {
+					throw new Error(`Could not find ${host}`);
+				}
+
+				const configUser = hostConfig.find((line:any) => line.param === 'User');
+				const configPort = hostConfig.find((line:any) => line.param === 'Port');
+				const configHost = hostConfig.find((line:any) => line.param === 'HostName');
+				const configProxy = hostConfig.find((line:any) => line.param === 'ProxyCommand');
+
+				destinationOptions = {
+					username: configUser ? configUser.value : options.username,
+					port: configPort ? configPort.value : options.port,
+					host: configHost ? configHost.value : options.host
+				}
+
+				// If it's set to proxy
+				if (configProxy) {
+					logger.log(`Attempting to parse ProxyCommand for ssh configuration of ${host}`);
+
+					const proxyCommand: string = configProxy.value;
+					// For now we just handle ssh forwards.  I don't know what other edge cases are out there
+					if (proxyCommand.startsWith('ssh')) {
+						const args = proxyCommand.split(' ');
+						const jumpHostArg = args[args.length-1];
+
+						// forward channel -W
+						const forwardArg = args.indexOf('-W');
+						if (forwardArg > 0) { 
+							logger.log(`Attempting to parse forwarding for ssh configuration of ${host}`);
+
+							const hostAndPort = args[forwardArg + 1].split(':');
+							// %h is the config host, %p is the config port
+							destinationOptions.host = hostAndPort[0] === '%h' ? destinationOptions.host : hostAndPort[0];
+							destinationOptions.port = hostAndPort[1] === '%p' ? destinationOptions.port : Number(hostAndPort[1]);
+
+							// Look for a defined jumpHost
+							const jumpHostBlock = config.find((line:any) => line.param === 'Host' && line.value === jumpHostArg);
+							if (jumpHostBlock) {
+								const jumpHostNameNode = jumpHostBlock.config.find((line:any) => line.param === 'HostName');
+								const jumpHost: string = jumpHostNameNode ? jumpHostNameNode.value : options.host;
+								const jumpPortNode = jumpHostBlock.config.find((line:any) => line.param === 'Port');
+								const jumpPort: number = jumpPortNode ? jumpPortNode.value : options.port;
+								const jumpUserNode = jumpHostBlock.config.find((line:any) => line.param === 'User');
+								const jumpUser: string = jumpUserNode ? jumpUserNode.value : options.username;
+								jumpOptions = {
+									username: jumpUser,
+									port: jumpPort,
+									host: jumpHost
+								}
+							} else {
+								// port -p
+								const jumpPortArg = args.indexOf('-p');
+								const jumpPort = jumpPortArg > 0 ? Number(args[jumpPortArg + 1]) : 22;
+
+								// username@host (username optional)
+								const jumpUserAndHost = jumpHostArg.split('@');
+								const jumpUser = jumpUserAndHost.length > 1 ? jumpUserAndHost[0]: options.username;
+								const jumpHost = jumpUserAndHost[jumpUserAndHost.length-1];
+
+								jumpOptions = {
+									username: jumpUser,
+									port: jumpPort,
+									host: jumpHost
+								}
+							}
+						}
+					} else {
+						throw new Error('We currently only support ssh in ProxyCommand.');
+					}
+				}
+			} catch(err) {
+				logger.log(`Failed to process ${sshConfig}:\n\t${err}\n\tAttempting to use extension settings.`);
 			}
 		}
-	
-		if (jumpHost) {
-			resolve(connectViaJump(conn, options, jumpHost));
+
+
+		if (jumpOptions) {
+			logger.log(`Connecting to ${getHostString(destinationOptions)} via ${getHostString(jumpOptions)}`);
+			resolve(connectViaJump(conn, options, jumpOptions));
 		} else {
 			logger.log(`Connecting to ${getHostString(destinationOptions)}`);
 			conn.connect(getConnectConfig(destinationOptions));
@@ -183,22 +205,8 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 	});
 }
 
-function connectViaJump(destination: Client, destinationOptions: ConnectOptions, jumpHost: string): Promise<string> {
+function connectViaJump(destination: Client, destinationOptions: ConnectOptions, jumpOptions: ConnectOptions): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const at = jumpHost.indexOf('@');
-		const colon = jumpHost.indexOf(':');
-	
-		if (at < 0 || colon < 0) {
-			reject(`Invalid jump host.  It should be: ${JUMP_FORMAT}`)
-		}
-		
-		const jumpOptions: ConnectOptions = {
-			username: jumpHost.substring(0, at),
-			host: jumpHost.substring(at + 1, colon),
-			port: Number(jumpHost.substring(colon + 1))
-		}
-
-		logger.log(`Connecting to ${getHostString(destinationOptions)} via ${getHostString(jumpOptions)}`);
 
 		const jump = new Client();
 
