@@ -59,7 +59,10 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 		logger.log("started");
 
 		// Define callbacks that apply to all connection strategies
-		conn.on('x11', handleX11)
+		conn.on('x11', (info, accept) => {
+				logger.log(`${options.host} received x11 request.`);
+				handleX11(info, accept);
+			})
 			.on('ready', () => {
 				// Create an interactive shell with X11 forwarding and leave it open
 				// as long as VS Code is running so that we can point VS Code to its
@@ -229,6 +232,9 @@ function connectViaJump(destination: Client, destinationOptions: ConnectOptions,
 						...getConnectConfig(destinationOptions)
 					});
 				});
+			})
+			.on('x11', () => {
+				logger.log(`${jumpOptions.host} received x11 request.`)
 			})
 			.on('error', (err) => {
 				reject(err);
