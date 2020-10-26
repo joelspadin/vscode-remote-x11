@@ -58,6 +58,18 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 	return new Promise((resolve, reject) => {
 		logger.log("started");
 
+		conn.on('x11', handleX11)
+			.on('ready', () => {
+				// Create an interactive shell with X11 forwarding and leave it open
+				// as long as VS Code is running so that we can point VS Code to its
+				// display.
+				logger.log("Creating forwarding shell");
+				resolve(createForwardingShell(conn));
+			})
+			.on('error', (err) => {
+				reject(err);
+			})
+
 		const preferConfig = getPreferConfig();
 		const jumpHost = getJumpHost();
 		let destinationOptions: ConnectOptions  = { 
@@ -181,26 +193,14 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 			}
 		}
 
-
 		if (jumpOptions) {
 			logger.log(`Connecting to ${getHostString(destinationOptions)} via ${getHostString(jumpOptions)}`);
 			resolve(connectViaJump(conn, options, jumpOptions));
 		} else {
 			logger.log(`Connecting to ${getHostString(destinationOptions)}`);
 			// Define callbacks that apply to all connection strategies
-			conn.on('x11', handleX11)
-				.on('ready', () => {
-					// Create an interactive shell with X11 forwarding and leave it open
-					// as long as VS Code is running so that we can point VS Code to its
-					// display.
-					logger.log("Creating forwarding shell");
-					resolve(createForwardingShell(conn));
-				})
-				.on('error', (err) => {
-					reject(err);
-				})
-				.connect(getConnectConfig(destinationOptions));
-			}
+			conn.connect(getConnectConfig(destinationOptions));
+		}
 	});
 }
 
@@ -210,22 +210,13 @@ function connectViaJump(destination: Client, destinationOptions: ConnectOptions,
 		const jump = new Client();
 
 		destination
-			.on('x11', handleX11)
-			.on('ready', () => {
-				// Create an interactive shell with X11 forwarding and leave it open
-				// as long as VS Code is running so that we can point VS Code to its
-				// display.
-				logger.log("Creating forwarding shell");
-				resolve(createForwardingShell(conn));
-			})
 			.on('close', () => {
 				logger.log(`Closing ${getHostString(jumpOptions)} along with ${getHostString(destinationOptions)}`);
 				jump.end();
 			})
 
 		logger.log(`Connecting to ${getHostString(jumpOptions)}`);
-		jump
-			.on('x11', handleX11)
+		jump.on('x11', handleX11)
 			.on('ready', () => {
 				// Create an interactive shell with X11 forwarding and leave it open
 				// as long as VS Code is running so that we can point VS Code to its
