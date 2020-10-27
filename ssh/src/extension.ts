@@ -29,18 +29,20 @@ interface ConnectOptions {
 }
 
 const BASE_PORT = 6000;
-const JUMP_FORMAT = 'user@host:port';
 
 const logger = new Logger('Remote X11 (SSH)');
-let conn: Client;
+let destination: Client;
+let jump: Client;
 
 export function activate(context: vscode.ExtensionContext): void {
 	const disposable = vscode.commands.registerCommand('remote-x11-ssh.connect', async (options: ConnectOptions) => {
-		conn?.destroy();
-		conn = new Client();
+		destination?.destroy();
+		jump?.destroy();
+		destination = new Client();
+		jump = new Client();
 
 		try {
-			return await createForwardedDisplay(conn, options);
+			return await createForwardedDisplay(destination, options);
 		} catch (ex) {
 			logger.log(ex);
 			throw ex;
@@ -51,14 +53,15 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {
-	conn?.destroy();
+	destination?.destroy();
 }
 
 function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<string> {
 	return new Promise((resolve, reject) => {
 		logger.log("started");
 
-		conn.on('x11', handleX11)
+		conn
+			.on('x11', handleX11)
 			.on('ready', () => {
 				// Create an interactive shell with X11 forwarding and leave it open
 				// as long as VS Code is running so that we can point VS Code to its
@@ -69,6 +72,36 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 			.on('error', (err) => {
 				reject(err);
 			})
+			.on('close', () => {
+				if (jump && jumpOptions) {
+					logger.log(`Closing ${getHostString(jumpOptions)} along with ${getHostString(destinationOptions)}`);
+					jump.end();
+				}
+			});
+		
+		jump
+			.on('ready', () => {
+				// Create an interactive shell with X11 forwarding and leave it open
+				// as long as VS Code is running so that we can point VS Code to its
+				// display.
+				createForwardingShell(jump);
+
+				jump.forwardOut('127.0.0.1', 12345, destinationOptions.host, destinationOptions.port, (err, stream) => {
+					if (err) {
+						reject(err);
+						return jump.end();
+					}
+					
+					logger.log(`Connecting to ${getHostString(destinationOptions)}`);
+					destination.connect({
+						sock: stream,
+						...getConnectConfig(destinationOptions)
+					});
+				});
+			})
+			.on('error', (err) => {
+				reject(err);
+			});
 
 		const preferConfig = getPreferConfig();
 		const jumpHost = getJumpHost();
@@ -195,51 +228,12 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 
 		if (jumpOptions) {
 			logger.log(`Connecting to ${getHostString(destinationOptions)} via ${getHostString(jumpOptions)}`);
-			resolve(connectViaJump(conn, options, jumpOptions));
+			jump.connect(getConnectConfig(jumpOptions));
 		} else {
 			logger.log(`Connecting to ${getHostString(destinationOptions)}`);
 			// Define callbacks that apply to all connection strategies
 			conn.connect(getConnectConfig(destinationOptions));
 		}
-	});
-}
-
-function connectViaJump(destination: Client, destinationOptions: ConnectOptions, jumpOptions: ConnectOptions): Promise<string> {
-	return new Promise((resolve, reject) => {
-
-		const jump = new Client();
-
-		destination
-			.on('close', () => {
-				logger.log(`Closing ${getHostString(jumpOptions)} along with ${getHostString(destinationOptions)}`);
-				jump.end();
-			})
-
-		logger.log(`Connecting to ${getHostString(jumpOptions)}`);
-		jump.on('x11', handleX11)
-			.on('ready', () => {
-				// Create an interactive shell with X11 forwarding and leave it open
-				// as long as VS Code is running so that we can point VS Code to its
-				// display.
-				logger.log("Creating forwarding shell");
-				resolve(createForwardingShell(jump));
-
-				jump.forwardOut('127.0.0.1', 12345, destinationOptions.host, destinationOptions.port, (err, stream) => {
-					if (err) {
-						reject(err);
-						return jump.end();
-					}
-					logger.log(`Connecting to ${getHostString(destinationOptions)}`);
-					destination.connect({
-						sock: stream,
-						...getConnectConfig(destinationOptions)
-					});
-				});
-			})
-			.on('error', (err) => {
-				reject(err);
-			})
-			.connect(getConnectConfig(jumpOptions));
 	});
 }
 
@@ -256,6 +250,28 @@ function getConnectConfig(options: ConnectOptions) {
 }
 
 function createForwardingShell(conn: Client): Promise<string> {
+	logger.log('Connection ready. Setting up display...');
+
+	return new Promise((resolve, reject) => {
+		const x11: X11Options = {
+			single: false,
+			screen: getScreen(),
+		};
+
+		conn.shell({ x11 }, (err, stream) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+
+			stream.on('close', () => logger.log('Connection closed.'));
+
+			resolve(getForwardedDisplay(stream));
+		});
+	});
+}
+
+function createForwardingShellNoDisplay(conn: Client): Promise<string> {
 	logger.log('Connection ready. Setting up display...');
 
 	return new Promise((resolve, reject) => {
