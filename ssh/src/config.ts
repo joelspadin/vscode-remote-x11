@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 
 export const DefaultTimeout = 5;
 export const DefaultDisplayCommand = 'bash -c "echo DISPLAY=$DISPLAY"';
+export const DefaultSshConfig = '~/.ssh/config';
 
 export type AuthenticationMethod = 'agent' | 'keyFile';
 
@@ -53,6 +54,26 @@ export function isVerboseLoggingEnabled(): boolean {
 	return getConfig('SSH.verboseLogging', false);
 }
 
+export function getJumpHost(): string | null {
+	return getConfig('SSH.jumpHost', null);
+}
+
+export function getJumpUser(): string | null {
+	return getConfig('SSH.jumpUser', null);
+}
+
+export function getJumpPort(): number | null {
+	return getConfig('SSH.jumpPort', null);
+}
+
+export function getPreferConfig(): boolean {
+	return getConfig('SSH.preferConfig', false);
+}
+
+export function getSshConfig(): string {
+	return getConfig('SSH.sshConfig', DefaultSshConfig);
+}
+
 function getDefaultAgent(): string {
 	if (os.platform() === 'win32') {
 		return '\\\\.\\pipe\\openssh-ssh-agent';
@@ -67,7 +88,7 @@ function getDefaultAgent(): string {
 	}
 }
 
-function resolveHome(file: string): string {
+export function resolveHome(file: string): string {
 	if (file === '~') {
 		return os.homedir();
 	}

@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import { Socket } from 'net';
 import { Client, ClientChannel, X11Options, X11Details, ConnectConfig } from 'ssh2';
 import * as vscode from 'vscode';
+import { getJumpHost, getJumpPort, getJumpUser, resolveHome } from './config';
+const SSHConfig = require('ssh-config')
 
 import {
 	getScreen,
@@ -14,6 +16,8 @@ import {
 	getServerHost,
 	getServerPort,
 	getDisplayCommand,
+	getPreferConfig,
+	getSshConfig
 } from './config';
 import { Logger } from './logger';
 import { withTimeout } from './timeout';
@@ -27,15 +31,18 @@ interface ConnectOptions {
 const BASE_PORT = 6000;
 
 const logger = new Logger('Remote X11 (SSH)');
-let conn: Client;
+let destination: Client;
+let jump: Client;
 
 export function activate(context: vscode.ExtensionContext): void {
 	const disposable = vscode.commands.registerCommand('remote-x11-ssh.connect', async (options: ConnectOptions) => {
-		conn?.destroy();
-		conn = new Client();
+		destination?.destroy();
+		jump?.destroy();
+		destination = new Client();
+		jump = new Client();
 
 		try {
-			return await createForwardedDisplay(conn, options);
+			return await createForwardedDisplay(destination, options);
 		} catch (ex) {
 			logger.log(ex);
 			throw ex;
@@ -46,41 +53,226 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {
-	conn?.destroy();
+	destination?.destroy();
 }
 
 function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const { username } = options;
-		const host = getServerHost() || options.host;
-		const port = getServerPort() || options.port;
+		logger.log("started");
 
-		logger.log(`Connecting to ${username}@${host} port ${port}`);
+		conn
+			.on('x11', handleX11)
+			.on('ready', () => {
+				// Create an interactive shell with X11 forwarding and leave it open
+				// as long as VS Code is running so that we can point VS Code to its
+				// display.
+				logger.log("Creating forwarding shell");
+				resolve(createForwardingShell(conn, true));
+			})
+			.on('error', (err) => {
+				reject(err);
+			})
+			.on('close', () => {
+				if (jump && jumpOptions) {
+					logger.log(`Closing ${getHostString(jumpOptions)} along with ${getHostString(destinationOptions)}`);
+					jump.end();
+				}
+			});
+		
+		jump
+			.on('ready', () => {
+				// Create an interactive shell with X11 forwarding and leave it open
+				// as long as VS Code is running so that we can point VS Code to its
+				// display.
+				createForwardingShell(jump, false);
 
-		conn.on('x11', handleX11);
+				jump.forwardOut('127.0.0.1', 12345, destinationOptions.host, destinationOptions.port, (err, stream) => {
+					if (err) {
+						reject(err);
+						return jump.end();
+					}
+					
+					logger.log(`Connecting to ${getHostString(destinationOptions)}`);
+					destination.connect({
+						sock: stream,
+						...getConnectConfig(destinationOptions)
+					});
+				});
+			})
+			.on('error', (err) => {
+				reject(err);
+			});
 
-		// Create an interactive shell with X11 forwarding and leave it open
-		// as long as VS Code is running so that we can point VS Code to its
-		// display.
-		conn.on('ready', () => {
-			resolve(createForwardingShell(conn));
-		});
+		const preferConfig = getPreferConfig();
+		const jumpHost = getJumpHost();
+		let destinationOptions: ConnectOptions  = { 
+			username: options.username,
+			host: getServerHost() || options.host,
+			port: getServerPort() || options.port
+		}
 
-		conn.on('error', (err) => {
-			reject(err);
-		});
+		// Populate jump host falling back on server settings for user and port
+		let jumpOptions: ConnectOptions | null = null;
+		if (jumpHost) {
+			const jumpUser = getJumpUser();
+			const jumpPort = getJumpPort();
+			jumpOptions = {
+				username: jumpUser ? jumpUser : options.username,
+				host: jumpHost,
+				port: jumpPort ? jumpPort: options.port
+			}
+		}
 
-		conn.connect({
-			username,
-			host,
-			port,
-			debug: isVerboseLoggingEnabled() ? logVerbose : undefined,
-			...getAuthOptions(),
+		if (preferConfig) {
+			const sshConfig = resolveHome(getSshConfig());
+			const host = getServerHost() || options.host;
+
+			logger.log(`Attempting to parse ${sshConfig} for ssh configuration of ${host}`);
+
+			try {
+				const data = fs.readFileSync(resolveHome(getSshConfig()))
+
+				const config = SSHConfig.parse(data.toString());
+
+				let hostConfig = null;
+				for (const line of config) {
+					if (line.param === 'Host') {
+						if (line.value === host) {
+							hostConfig = line.config;
+							break;
+						} else {
+							const hostNameMatch = line.config.find((line:any) => line.param === 'HostName' && line.value === host);
+							if (hostNameMatch) {
+								logger.log(`${host} matches ${line.value}`);
+								hostConfig = line.config;
+								break;
+							}
+						}
+					}
+				}
+
+				if (!hostConfig) {
+					throw new Error(`Could not find ${host}`);
+				}
+
+				const configUser = hostConfig.find((line:any) => line.param === 'User');
+				const configPort = hostConfig.find((line:any) => line.param === 'Port');
+				const configHost = hostConfig.find((line:any) => line.param === 'HostName');
+				const configProxy = hostConfig.find((line:any) => line.param === 'ProxyCommand');
+
+				destinationOptions = {
+					username: configUser ? configUser.value : options.username,
+					port: configPort ? configPort.value : options.port,
+					host: configHost ? configHost.value : options.host
+				}
+
+				// If it's set to proxy
+				if (configProxy) {
+					logger.log(`Attempting to parse ProxyCommand for ssh configuration of ${host}`);
+
+					const proxyCommand: string = configProxy.value;
+					// For now we just handle ssh forwards.  I don't know what other edge cases are out there
+					if (proxyCommand.startsWith('ssh')) {
+						const args = proxyCommand.split(' ');
+						const jumpHostArg = args[args.length-1];
+
+						// forward channel -W
+						const forwardArg = args.indexOf('-W');
+						if (forwardArg > 0) { 
+							logger.log(`Attempting to parse forwarding for ssh configuration of ${host}`);
+
+							const hostAndPort = args[forwardArg + 1].split(':');
+							// %h is the config host, %p is the config port
+							destinationOptions.host = hostAndPort[0] === '%h' ? destinationOptions.host : hostAndPort[0];
+							destinationOptions.port = hostAndPort[1] === '%p' ? destinationOptions.port : Number(hostAndPort[1]);
+
+							// Look for a defined jumpHost
+							const jumpHostBlock = config.find((line:any) => line.param === 'Host' && line.value === jumpHostArg);
+							if (jumpHostBlock) {
+								const jumpHostNameNode = jumpHostBlock.config.find((line:any) => line.param === 'HostName');
+								const jumpHost: string = jumpHostNameNode ? jumpHostNameNode.value : options.host;
+								const jumpPortNode = jumpHostBlock.config.find((line:any) => line.param === 'Port');
+								const jumpPort: number = jumpPortNode ? jumpPortNode.value : options.port;
+								const jumpUserNode = jumpHostBlock.config.find((line:any) => line.param === 'User');
+								const jumpUser: string = jumpUserNode ? jumpUserNode.value : options.username;
+								jumpOptions = {
+									username: jumpUser,
+									port: jumpPort,
+									host: jumpHost
+								}
+							} else {
+								// port -p
+								const jumpPortArg = args.indexOf('-p');
+								const jumpPort = jumpPortArg > 0 ? Number(args[jumpPortArg + 1]) : 22;
+
+								// username@host (username optional)
+								const jumpUserAndHost = jumpHostArg.split('@');
+								const jumpUser = jumpUserAndHost.length > 1 ? jumpUserAndHost[0]: options.username;
+								const jumpHost = jumpUserAndHost[jumpUserAndHost.length-1];
+
+								jumpOptions = {
+									username: jumpUser,
+									port: jumpPort,
+									host: jumpHost
+								}
+							}
+						}
+					} else {
+						throw new Error('We currently only support ssh in ProxyCommand.');
+					}
+				}
+			} catch(err) {
+				logger.log(`Failed to process ${sshConfig}:\n\t${err}\n\tAttempting to use extension settings.`);
+			}
+		}
+
+		if (jumpOptions) {
+			logger.log(`Connecting to ${getHostString(destinationOptions)} via ${getHostString(jumpOptions)}`);
+			jump.connect(getConnectConfig(jumpOptions));
+		} else {
+			logger.log(`Connecting to ${getHostString(destinationOptions)}`);
+			// Define callbacks that apply to all connection strategies
+			conn.connect(getConnectConfig(destinationOptions));
+		}
+	});
+}
+
+function getHostString(options: ConnectOptions): string {
+	return `${options.username}@${options.host} port ${options.port}`;
+}
+
+function getConnectConfig(options: ConnectOptions) {
+	return {
+		...options,
+		debug: isVerboseLoggingEnabled() ? logVerbose : undefined,
+		...getAuthOptions()
+	}
+}
+
+function createForwardingShell(conn: Client, shouldGetDisplay: boolean): Promise<string> {
+	logger.log('Connection ready. Setting up display...');
+
+	return new Promise((resolve, reject) => {
+		const x11: X11Options = {
+			single: false,
+			screen: getScreen(),
+		};
+
+		conn.shell({ x11 }, (err, stream) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+
+			stream.on('close', () => logger.log('Connection closed.'));
+
+			// We don't need the display for the jump host.
+			shouldGetDisplay ? resolve(getForwardedDisplay(stream)) : resolve;
 		});
 	});
 }
 
-function createForwardingShell(conn: Client): Promise<string> {
+function createForwardingShellNoDisplay(conn: Client): Promise<string> {
 	logger.log('Connection ready. Setting up display...');
 
 	return new Promise((resolve, reject) => {

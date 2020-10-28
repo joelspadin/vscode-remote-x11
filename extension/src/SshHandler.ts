@@ -20,6 +20,11 @@ export class SshHandler extends RemoteHandler {
 			'remoteX11.SSH.host',
 			'remoteX11.SSH.port',
 			'remoteX11.SSH.privateKey',
+			'remoteX11.SSH.jumpHost',
+			'remoteX11.SSH.jumpUser',
+			'remoteX11.SSH.jumpPort',
+			'remoteX11.SSH.preferConfig',
+			'remoteX11.SSH.sshConfig',
 		];
 	}
 
