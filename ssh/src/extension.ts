@@ -67,7 +67,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 				// as long as VS Code is running so that we can point VS Code to its
 				// display.
 				logger.log("Creating forwarding shell");
-				resolve(createForwardingShell(conn));
+				resolve(createForwardingShell(conn, true));
 			})
 			.on('error', (err) => {
 				reject(err);
@@ -84,7 +84,7 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 				// Create an interactive shell with X11 forwarding and leave it open
 				// as long as VS Code is running so that we can point VS Code to its
 				// display.
-				createForwardingShell(jump);
+				createForwardingShell(jump, false);
 
 				jump.forwardOut('127.0.0.1', 12345, destinationOptions.host, destinationOptions.port, (err, stream) => {
 					if (err) {
@@ -249,7 +249,7 @@ function getConnectConfig(options: ConnectOptions) {
 	}
 }
 
-function createForwardingShell(conn: Client): Promise<string> {
+function createForwardingShell(conn: Client, shouldGetDisplay: boolean): Promise<string> {
 	logger.log('Connection ready. Setting up display...');
 
 	return new Promise((resolve, reject) => {
@@ -266,7 +266,8 @@ function createForwardingShell(conn: Client): Promise<string> {
 
 			stream.on('close', () => logger.log('Connection closed.'));
 
-			resolve(getForwardedDisplay(stream));
+			// We don't need the display for the jump host.
+			shouldGetDisplay ? resolve(getForwardedDisplay(stream)) : resolve;
 		});
 	});
 }
