@@ -48,6 +48,24 @@
 						"description": "Screen number to connect to.",
 						"default": 0
 					},
+					"remoteX11.X11ConnectionType": {
+						"type": "string",
+						"description": "Sets how Remote X11 connects to the local X11 server.",
+						"default": "tcp",
+						"enum": [
+							"tcp",
+							"unix"
+						],
+						"markdownEnumDescriptions": [
+							"TCP connects to an X11 server listening on a local TCP socket.",
+							"Unix connects to an X11 server listening on a unix socket specified in `#remoteX11.X11Socket#`. This is generally nessasary for linux hosts."
+						]
+					},
+					"remoteX11.X11Socket": {
+						"type": "string",
+						"markdownDescription": "Path to the X11 server unix socket. The screen number specified in `#remoteX11.screen#` is appended to the end. Used when `#remoteX11.X11ConnectionType#` is set to unix. ",
+						"default": "/tmp/.X11-unix/X"
+					},
 					"remoteX11.SSH.enable": {
 						"type": "boolean",
 						"markdownDescription": "Enable X11 forwarding and set `DISPLAY` for SSH targets?",

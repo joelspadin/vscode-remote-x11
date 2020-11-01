@@ -8,6 +8,8 @@ export const DefaultDisplayCommand = 'bash -c "echo DISPLAY=$DISPLAY"';
 
 export type AuthenticationMethod = 'agent' | 'keyFile';
 
+export type X11ConnectionMethod = 'tcp' | 'unix';
+
 export function getConfig<T>(name: string, defaultValue: T): T {
 	const config = vscode.workspace.getConfiguration('remoteX11');
 	return config.get(name, defaultValue);
@@ -51,6 +53,14 @@ export function getTimeout(): number {
 
 export function isVerboseLoggingEnabled(): boolean {
 	return getConfig('SSH.verboseLogging', false);
+}
+
+export function getX11ConnectionMethod(): X11ConnectionMethod {
+	return getConfig<X11ConnectionMethod>('X11ConnectionType', 'tcp');
+}
+
+export function getX11SocketPath(): string {
+	return getConfig('X11Socket', "/tmp/.X11-unix/X");
 }
 
 function getDefaultAgent(): string {
