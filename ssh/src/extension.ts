@@ -14,6 +14,8 @@ import {
 	getServerHost,
 	getServerPort,
 	getDisplayCommand,
+	getX11ConnectionMethod,
+	getX11SocketPath,
 } from './config';
 import { Logger } from './logger';
 import { withTimeout } from './timeout';
@@ -112,7 +114,17 @@ function handleX11(info: X11Details, accept: () => ClientChannel) {
 		xclientsock.pipe(xserversock).pipe(xclientsock);
 	});
 
-	xserversock.connect(BASE_PORT + getDisplay(), 'localhost');
+	const method = getX11ConnectionMethod();
+	switch (method) {
+		case 'tcp':
+			xserversock.connect(BASE_PORT + getDisplay(), 'localhost');
+			break;
+		case 'unix':
+			xserversock.connect(getX11SocketPath() + getDisplay());
+			break;
+		default:
+			throw new Error(`Unknown connection method: ${method}.`);
+	}
 }
 
 function getAuthOptions(): Partial<ConnectConfig> {
