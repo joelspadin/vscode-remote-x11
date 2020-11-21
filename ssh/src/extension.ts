@@ -1,5 +1,8 @@
+import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import { Socket } from 'net';
+import { tmpdir } from 'os';
+import * as path from 'path';
 import { Client, ClientChannel, X11Options, X11Details, ConnectConfig } from 'ssh2';
 import * as vscode from 'vscode';
 
@@ -16,6 +19,7 @@ import {
 	getDisplayCommand,
 	getX11ConnectionMethod,
 	getX11SocketPath,
+	getXAuthPermissionLevel,
 } from './config';
 import { Logger } from './logger';
 import { withTimeout } from './timeout';
@@ -82,14 +86,73 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 	});
 }
 
+function getXAuthCookie() {
+	let listCommand;
+	if (getXAuthPermissionLevel() === 'untrusted') {
+		const tmpFolder = fs.mkdtempSync(path.join(tmpdir(), 'remote-x11-'));
+		const authorityFile = path.join(tmpFolder, 'xauthority');
+		const generateCommand = spawnSync(
+			'xauth',
+			['-f', authorityFile, 'generate', `:${getDisplay()}`, 'MIT-MAGIC-COOKIE-1', 'untrusted'],
+			{ windowsHide: true },
+		);
+		if (generateCommand.error) {
+			logger.log(`xauth could not be executed due to "${generateCommand.error.message}"`);
+			fs.rmdirSync(tmpFolder);
+			return null;
+		}
+		if (generateCommand.status !== 0) {
+			logger.log(`xauth errored when generating a token, "${generateCommand.stderr}"`);
+			if (fs.existsSync(authorityFile)) {
+				fs.unlinkSync(authorityFile);
+			}
+			fs.rmdirSync(tmpFolder);
+			return null;
+		}
+		listCommand = spawnSync('xauth', ['-f', authorityFile, 'list', `:${getDisplay()}`], { windowsHide: true });
+		fs.unlinkSync(authorityFile);
+		fs.rmdirSync(tmpFolder);
+	} else {
+		listCommand = spawnSync('xauth', ['list', `:${getDisplay()}`], { windowsHide: true });
+	}
+	if (listCommand.error) {
+		logger.log(`xauth could not be executed due to "${listCommand.error.message}"`);
+		return null;
+	}
+	if (listCommand.status !== 0) {
+		logger.log(`xauth errored when listing the token, "${listCommand.stderr}"`);
+		return null;
+	}
+	const listOutput = listCommand.stdout.toString().trim();
+	if (listOutput.length === 0) {
+		logger.log(
+			"xauth list didn't error but it didn't return any tokens. Are you sure you specified the right display?",
+		);
+		return null;
+	}
+	// Command output is pared per https://github.com/openssh/openssh-portable/blob/1a14c13147618144d1798c36a588397ba9008fcc/clientloop.c#L389
+	const tokens = listOutput.split(/\s+/);
+	if (tokens.length !== 3 || !tokens[2].match(/[0-9a-fA-F]{32}/)) {
+		logger.log(`xauth list output doesn't match expected format "${listOutput}"`);
+		return null;
+	}
+	return tokens[2];
+}
+
 function createForwardingShell(conn: Client): Promise<string> {
 	logger.log('Connection ready. Setting up display...');
 
 	return new Promise((resolve, reject) => {
-		const x11: X11Options = {
+		const cookie = getXAuthCookie();
+		if (cookie === null) {
+			logger.log("Couldn't get a valid xauth token, using a random token");
+		}
+		// The type library for ssh2 is incomplete and missing the cookie property
+		const x11 = {
 			single: false,
 			screen: getScreen(),
-		};
+			cookie: cookie ?? undefined,
+		} as X11Options;
 
 		conn.shell({ x11 }, (err, stream) => {
 			if (err) {
