@@ -66,7 +66,7 @@ export function getX11SocketPath(): string {
 }
 
 export function getXAuthPermissionLevel(): XAuthPermissionLevel {
-	return getConfig<XAuthPermissionLevel>('XAuthPermissionLevel', 'untrusted');
+	return getConfig<XAuthPermissionLevel>('SSH.XAuthPermissionLevel', 'untrusted');
 }
 
 function getDefaultAgent(): string {

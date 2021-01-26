@@ -1,4 +1,5 @@
 import { spawnSync } from 'child_process';
+import * as commandExists from 'command-exists';
 import * as fs from 'fs';
 import { Socket } from 'net';
 import { tmpdir } from 'os';
@@ -87,6 +88,10 @@ function createForwardedDisplay(conn: Client, options: ConnectOptions): Promise<
 }
 
 function getXAuthCookie() {
+	if (!commandExists.sync('xauth')) {
+		logger.log(`The xauth binary could not be located. This is normal on Windows must may indicate a problem on Linux/MacOS.`);
+		return null;
+	}
 	let listCommand;
 	if (getXAuthPermissionLevel() === 'untrusted') {
 		const tmpFolder = fs.mkdtempSync(path.join(tmpdir(), 'remote-x11-'));
@@ -130,7 +135,7 @@ function getXAuthCookie() {
 		);
 		return null;
 	}
-	// Command output is pared per https://github.com/openssh/openssh-portable/blob/1a14c13147618144d1798c36a588397ba9008fcc/clientloop.c#L389
+	// Command output is parsed per https://github.com/openssh/openssh-portable/blob/1a14c13147618144d1798c36a588397ba9008fcc/clientloop.c#L389
 	const tokens = listOutput.split(/\s+/);
 	if (tokens.length !== 3 || !tokens[2].match(/[0-9a-fA-F]{32}/)) {
 		logger.log(`xauth list output doesn't match expected format "${listOutput}"`);
@@ -145,7 +150,7 @@ function createForwardingShell(conn: Client): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const cookie = getXAuthCookie();
 		if (cookie === null) {
-			logger.log("Couldn't get a valid xauth token, using a random token");
+			logger.log("xauth didn't supply a token, using a random one");
 		}
 		// The type library for ssh2 is incomplete and missing the cookie property
 		const x11 = {

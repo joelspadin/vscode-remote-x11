@@ -61,19 +61,6 @@
 							"Unix connects to an X11 server listening on a unix socket specified in `#remoteX11.X11Socket#`. This is generally nessasary for linux hosts."
 						]
 					},
-					"remoteX11.XAuthPermissionLevel": {
-						"type": "string",
-						"description": "Sets the permission level of this connection",
-						"default": "untrusted",
-						"enum": [
-							"untrusted",
-							"trusted"
-						],
-						"markdownEnumDescriptions": [
-							"Untrusted is the normal permission level",
-							"Trusted bypasses X11 security extention, allowing remote windows full access to other applications on the X11 server."
-						]
-					},
 					"remoteX11.X11Socket": {
 						"type": "string",
 						"markdownDescription": "Path to the X11 server unix socket. The screen number specified in `#remoteX11.screen#` is appended to the end. Used when `#remoteX11.X11ConnectionType#` is set to unix. ",
