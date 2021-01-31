@@ -1,142 +1,141 @@
 import * as assert from 'assert';
 import { afterEach } from 'mocha';
 import * as os from 'os';
-import sinon = require('sinon');
-
 import {
-	getDisplay,
-	getScreen,
-	getAuthenticationMethod,
-	getAgent,
-	getPrivateKey,
-	getServerHost,
-	getServerPort,
-	getDisplayCommand,
-	DefaultDisplayCommand,
-	DefaultTimeout,
-	getTimeout,
-	isVerboseLoggingEnabled,
+    DEFAULT_DISPLAY_COMMAND,
+    DEFAULT_TIMEOUT,
+    getAgent,
+    getAuthenticationMethod,
+    getDisplay,
+    getDisplayCommand,
+    getPrivateKey,
+    getScreen,
+    getServerHost,
+    getServerPort,
+    getTimeout,
+    isVerboseLoggingEnabled,
 } from '../../config';
 import { stubConfig } from '../stubs';
+import sinon = require('sinon');
 
 suite('Configuration Test Suite', () => {
-	afterEach(() => {
-		sinon.restore();
-	});
+    afterEach(() => {
+        sinon.restore();
+    });
 
-	test('getDisplay', () => {
-		stubConfig({ display: 1 });
-		assert.strictEqual(getDisplay(), 1);
-	});
+    test('getDisplay', () => {
+        stubConfig({ display: 1 });
+        assert.strictEqual(getDisplay(), 1);
+    });
 
-	test('getDisplay: default', () => {
-		stubConfig({});
-		assert.strictEqual(getDisplay(), 0);
-	});
+    test('getDisplay: default', () => {
+        stubConfig({});
+        assert.strictEqual(getDisplay(), 0);
+    });
 
-	test('getScreen', () => {
-		stubConfig({ screen: 1 });
-		assert.strictEqual(getScreen(), 1);
-	});
+    test('getScreen', () => {
+        stubConfig({ screen: 1 });
+        assert.strictEqual(getScreen(), 1);
+    });
 
-	test('getScreen: default', () => {
-		stubConfig({});
-		assert.strictEqual(getScreen(), 0);
-	});
+    test('getScreen: default', () => {
+        stubConfig({});
+        assert.strictEqual(getScreen(), 0);
+    });
 
-	test('getAuthenticationMethod', () => {
-		stubConfig({
-			'SSH.authenticationMethod': 'agent',
-		});
-		assert.strictEqual(getAuthenticationMethod(), 'agent');
-	});
+    test('getAuthenticationMethod', () => {
+        stubConfig({
+            'SSH.authenticationMethod': 'agent',
+        });
+        assert.strictEqual(getAuthenticationMethod(), 'agent');
+    });
 
-	test('getAgent', () => {
-		stubConfig({
-			'SSH.agent': 'fakeagent',
-		});
-		assert.strictEqual(getAgent(), 'fakeagent');
-	});
+    test('getAgent', () => {
+        stubConfig({
+            'SSH.agent': 'fakeagent',
+        });
+        assert.strictEqual(getAgent(), 'fakeagent');
+    });
 
-	test('getAgent: default', () => {
-		stubConfig({});
+    test('getAgent: default', () => {
+        stubConfig({});
 
-		let expected: string;
+        let expected: string;
 
-		if (os.platform() === 'win32') {
-			expected = '\\\\.\\pipe\\openssh-ssh-agent';
-		} else {
-			expected = 'fakesocket';
-			process.env['SSH_AUTH_SOCK'] = expected;
-		}
+        if (os.platform() === 'win32') {
+            expected = '\\\\.\\pipe\\openssh-ssh-agent';
+        } else {
+            expected = 'fakesocket';
+            process.env['SSH_AUTH_SOCK'] = expected;
+        }
 
-		assert.strictEqual(getAgent(), expected);
-	});
+        assert.strictEqual(getAgent(), expected);
+    });
 
-	test('getPrivateKey', () => {
-		stubConfig({
-			'SSH.privateKey': '/home/fakeuser/.ssh/id_ecdsa',
-		});
-		assert.strictEqual(getPrivateKey(), '/home/fakeuser/.ssh/id_ecdsa');
-	});
+    test('getPrivateKey', () => {
+        stubConfig({
+            'SSH.privateKey': '/home/fakeuser/.ssh/id_ecdsa',
+        });
+        assert.strictEqual(getPrivateKey(), '/home/fakeuser/.ssh/id_ecdsa');
+    });
 
-	test('getServerHost', () => {
-		stubConfig({
-			'SSH.host': 'localhost',
-		});
-		assert.strictEqual(getServerHost(), 'localhost');
-	});
+    test('getServerHost', () => {
+        stubConfig({
+            'SSH.host': 'localhost',
+        });
+        assert.strictEqual(getServerHost(), 'localhost');
+    });
 
-	test('getServerHost: default', () => {
-		stubConfig({});
-		assert.strictEqual(getServerHost(), null);
-	});
+    test('getServerHost: default', () => {
+        stubConfig({});
+        assert.strictEqual(getServerHost(), null);
+    });
 
-	test('getServerPort', () => {
-		stubConfig({
-			'SSH.port': 42,
-		});
-		assert.strictEqual(getServerPort(), 42);
-	});
+    test('getServerPort', () => {
+        stubConfig({
+            'SSH.port': 42,
+        });
+        assert.strictEqual(getServerPort(), 42);
+    });
 
-	test('getServerPort: default', () => {
-		stubConfig({});
-		assert.strictEqual(getServerPort(), null);
-	});
+    test('getServerPort: default', () => {
+        stubConfig({});
+        assert.strictEqual(getServerPort(), null);
+    });
 
-	test('getDisplayCommand', () => {
-		stubConfig({
-			'SSH.displayCommand': 'fakecommand',
-		});
-		assert.strict(getDisplayCommand(), 'fakecommand');
-	});
+    test('getDisplayCommand', () => {
+        stubConfig({
+            'SSH.displayCommand': 'fakecommand',
+        });
+        assert.strict(getDisplayCommand(), 'fakecommand');
+    });
 
-	test('getDisplayCommand: default', () => {
-		stubConfig({});
-		assert.strict(getDisplayCommand(), DefaultDisplayCommand);
-	});
+    test('getDisplayCommand: default', () => {
+        stubConfig({});
+        assert.strict(getDisplayCommand(), DEFAULT_DISPLAY_COMMAND);
+    });
 
-	test('getTimeout', () => {
-		stubConfig({
-			'SSH.timeout': 42,
-		});
-		assert.strictEqual(getTimeout(), 42);
-	});
+    test('getTimeout', () => {
+        stubConfig({
+            'SSH.timeout': 42,
+        });
+        assert.strictEqual(getTimeout(), 42);
+    });
 
-	test('getTimeout: default', () => {
-		stubConfig({});
-		assert.strictEqual(getTimeout(), DefaultTimeout);
-	});
+    test('getTimeout: default', () => {
+        stubConfig({});
+        assert.strictEqual(getTimeout(), DEFAULT_TIMEOUT);
+    });
 
-	test('isVerboseLoggingEnabled', () => {
-		stubConfig({
-			'SSH.verboseLogging': true,
-		});
-		assert.strictEqual(isVerboseLoggingEnabled(), true);
-	});
+    test('isVerboseLoggingEnabled', () => {
+        stubConfig({
+            'SSH.verboseLogging': true,
+        });
+        assert.strictEqual(isVerboseLoggingEnabled(), true);
+    });
 
-	test('isVerboseLoggingEnabled: default', () => {
-		stubConfig({});
-		assert.strictEqual(isVerboseLoggingEnabled(), false);
-	});
+    test('isVerboseLoggingEnabled: default', () => {
+        stubConfig({});
+        assert.strictEqual(isVerboseLoggingEnabled(), false);
+    });
 });

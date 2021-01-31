@@ -1,11 +1,11 @@
 {
-	// See http://go.microsoft.com/fwlink/?LinkId=827846
-	// for the documentation about the extensions.json format
-	"recommendations": [
-		"dbaeumer.vscode-eslint",
-		"eamodio.tsl-problem-matcher",
-		"editorconfig.editorconfig",
-		"esbenp.prettier-vscode",
-		"spadin.config-defaults"
-	]
+  // See http://go.microsoft.com/fwlink/?LinkId=827846
+  // for the documentation about the extensions.json format
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "eamodio.tsl-problem-matcher",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "spadin.config-defaults"
+  ]
 }

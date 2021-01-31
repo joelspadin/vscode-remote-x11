@@ -45,31 +45,31 @@ for more details on authentication settings.
 You must reload the window (F1 > Developer: Reload Window) for setting changes
 to apply.
 
-* `remoteX11.display` - Display number to connect to. Change this if your X server
-	is using a display other than 0.
-* `remoteX11.screen` - Screen number to connect to.
-* `remoteX11.container.enable` - Set `DISPLAY` for containers?
-* `remoteX11.SSH.enable` - Enable X11 forwarding and set `DISPLAY` for SSH targets?
-* `remoteX11.SSH.authenticationMethod`:
-	* `keyFile` - Authenticate with the private key file specified by `remoteX11.SSH.privateKey`.
-		Passphrase-protected keys are not supported.
-	* `agent` - Use `ssh-agent` to get keys. This method does support passphrase-protected keys.
-* `remoteX11.SSH.agent` - Name of a Unix socket or Windows named pipe for ssh-agent.
-	Set to `pageant` to use Pageant on Windows. If left empty, defaults to Windows 10's OpenSSH
-	agent (`\\.\pipe\openssh-ssh-agent`) or the `SSH_AUTH_SOCK` environment variable on other platforms.
-	Only used if `remoteX11.SSH.authenticationMethod` is `agent`.
-* `remoteX11.SSH.privateKey` - Absolute path to your SSH private key file.
-	Only used if `remoteX11.SSH.authenticationMethod` is `publicKey`.
-* `remoteX11.SSH.displayCommand` - A command which prints `DISPLAY=<DISPLAY>` followed by a newline,
-	where `<DISPLAY>` is the value of the `DISPLAY` variable. Note that there must not be any spaces
-	in this text. Change this when connecting to a machine that doesn't support the default command.
-* `remoteX11.SSH.timeout` - Number of seconds to wait for the SSH shell to respond to the above command.
-	Use `0` to wait forever.
-* `remoteX11.SSH.host` - Sets the hostname or IP address used to connect to the SSH server.
-	Use this if Remote X11 tries to connect to the wrong address.
-* `remoteX11.SSH.port` - Sets the port used to connect to the SSH server. Use this if
-	Remote X11 tries to connect to the wrong port.
-* `remoteX11.WSL.enable` - Set `DISPLAY` for WSL targets?
+-   `remoteX11.display` - Display number to connect to. Change this if your X server
+    is using a display other than 0.
+-   `remoteX11.screen` - Screen number to connect to.
+-   `remoteX11.container.enable` - Set `DISPLAY` for containers?
+-   `remoteX11.SSH.enable` - Enable X11 forwarding and set `DISPLAY` for SSH targets?
+-   `remoteX11.SSH.authenticationMethod`:
+    -   `keyFile` - Authenticate with the private key file specified by `remoteX11.SSH.privateKey`.
+        Passphrase-protected keys are not supported.
+    -   `agent` - Use `ssh-agent` to get keys. This method does support passphrase-protected keys.
+-   `remoteX11.SSH.agent` - Name of a Unix socket or Windows named pipe for ssh-agent.
+    Set to `pageant` to use Pageant on Windows. If left empty, defaults to Windows 10's OpenSSH
+    agent (`\\.\pipe\openssh-ssh-agent`) or the `SSH_AUTH_SOCK` environment variable on other platforms.
+    Only used if `remoteX11.SSH.authenticationMethod` is `agent`.
+-   `remoteX11.SSH.privateKey` - Absolute path to your SSH private key file.
+    Only used if `remoteX11.SSH.authenticationMethod` is `publicKey`.
+-   `remoteX11.SSH.displayCommand` - A command which prints `DISPLAY=<DISPLAY>` followed by a newline,
+    where `<DISPLAY>` is the value of the `DISPLAY` variable. Note that there must not be any spaces
+    in this text. Change this when connecting to a machine that doesn't support the default command.
+-   `remoteX11.SSH.timeout` - Number of seconds to wait for the SSH shell to respond to the above command.
+    Use `0` to wait forever.
+-   `remoteX11.SSH.host` - Sets the hostname or IP address used to connect to the SSH server.
+    Use this if Remote X11 tries to connect to the wrong address.
+-   `remoteX11.SSH.port` - Sets the port used to connect to the SSH server. Use this if
+    Remote X11 tries to connect to the wrong port.
+-   `remoteX11.WSL.enable` - Set `DISPLAY` for WSL targets?
 
 ### Authentication Settings
 
@@ -194,21 +194,21 @@ to allow it:
    with Advanced Security"
 2. Select "Inbound Rules" on the left.
 3. Find the rule with the following settings:
-	* **Name:** the name of your X server, e.g. "VcXsrv windows xserver"
-	* **Action:** Block
-	* **Protocol:** TCP
+    - **Name:** the name of your X server, e.g. "VcXsrv windows xserver"
+    - **Action:** Block
+    - **Protocol:** TCP
 4. Right-click the rule and select "Properties".
 5. On the General tab, change the action to "Allow the connection":
 
-   ![Firewall rule, general tab](https://github.com/ChaosinaCan/vscode-remote-x11/raw/master/extension/media/firewall-general.png)
+    ![Firewall rule, general tab](https://github.com/ChaosinaCan/vscode-remote-x11/raw/master/extension/media/firewall-general.png)
 
 6. On the Scope tab, change "Remote IP address" to "These IP addresses"
    and add the following values:
 
-   * `172.16.0.0/12`
-   * `192.168.0.0/16`
+    - `172.16.0.0/12`
+    - `192.168.0.0/16`
 
-   ![Firewall rule, scope tab](https://github.com/ChaosinaCan/vscode-remote-x11/raw/master/extension/media/firewall-scope.png)
+    ![Firewall rule, scope tab](https://github.com/ChaosinaCan/vscode-remote-x11/raw/master/extension/media/firewall-scope.png)
 
 7. Select OK to save your changes.
 

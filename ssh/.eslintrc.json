@@ -1,65 +1,48 @@
 {
-    "root": true,
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaVersion": 2019,
-        "sourceType": "module"
-    },
-    "plugins": [
-        "@typescript-eslint",
-        "import"
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2019,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": ["plugin:prettier/recommended", "prettier/@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/naming-convention": [
+      "warn",
+      {
+        "selector": "default",
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow",
+        "trailingUnderscore": "allow"
+      },
+      {
+        "selector": "variable",
+        "format": ["camelCase", "UPPER_CASE"],
+        "leadingUnderscore": "allow",
+        "trailingUnderscore": "allow"
+      },
+      {
+        "selector": "classProperty",
+        "modifiers": ["static", "readonly"],
+        "format": ["UPPER_CASE"],
+        "leadingUnderscore": "allow",
+        "trailingUnderscore": "allow"
+      },
+      {
+        "selector": "typeLike",
+        "format": ["PascalCase"]
+      },
+      {
+        "selector": "objectLiteralProperty",
+        "format": null
+      }
     ],
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:import/errors",
-        "plugin:import/warnings",
-        "plugin:import/typescript",
-        "plugin:prettier/recommended",
-        "prettier/@typescript-eslint"
-    ],
-    "rules": {
-		"@typescript-eslint/explicit-function-return-type": "off",
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unused-vars": ["warn",
-            {
-                "argsIgnorePattern": "^_"
-            }
-        ],
-        "@typescript-eslint/no-use-before-define": "off",
-        "@typescript-eslint/semi": "error",
-        "curly": "error",
-        "eqeqeq": "error",
-        "import/order": [
-            "warn",
-            {
-                "groups": [
-                    ["builtin", "external", "internal"],
-                    "parent",
-                    "sibling"
-                ],
-                "newlines-between": "always",
-                "alphabetize": {
-                    "order": "asc",
-                    "caseInsensitive": true
-                }
-            }
-		],
-        "no-throw-literal": "error",
-        "semi": "off"
-    },
-    "settings": {
-        "import/parsers": {
-            "@typescript-eslint/parser": [".ts", ".tsx"]
-        },
-        "import/resolver": {
-            "typescript": {
-				"alwaysTryTypes": true
-            }
-        }
-	},
-	"ignorePatterns": [
-		"webpack.config.js"
-	]
+    "@typescript-eslint/semi": "warn",
+    "curly": "warn",
+    "eqeqeq": "warn",
+    "no-throw-literal": "warn",
+    "prettier/prettier": "warn",
+    "semi": "off"
+  }
 }

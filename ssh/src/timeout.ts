@@ -8,22 +8,22 @@ export class TimeoutError extends Error {}
  * @param errorMessage Error message to use if timed out.
  */
 export async function withTimeout<T>(promise: Promise<T>, ms: number, errorMessage?: string): Promise<T> {
-	if (ms === 0) {
-		return promise;
-	}
+    if (ms === 0) {
+        return promise;
+    }
 
-	let id: NodeJS.Timeout | undefined;
-	const timer = new Promise<never>((_resolve, reject) => {
-		id = setTimeout(() => {
-			reject(new TimeoutError(errorMessage));
-		}, ms);
-	});
+    let id: NodeJS.Timeout | undefined;
+    const timer = new Promise<never>((_resolve, reject) => {
+        id = setTimeout(() => {
+            reject(new TimeoutError(errorMessage));
+        }, ms);
+    });
 
-	const result = await Promise.race([promise, timer]);
+    const result = await Promise.race([promise, timer]);
 
-	if (id !== undefined) {
-		clearTimeout(id);
-	}
+    if (id !== undefined) {
+        clearTimeout(id);
+    }
 
-	return result;
+    return result;
 }
