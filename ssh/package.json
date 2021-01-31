@@ -46,6 +46,19 @@
 			{
 				"title": "Remote X11",
 				"properties": {
+					"remoteX11.SSH.XAuthPermissionLevel": {
+						"type": "string",
+						"description": "Sets the permission level of this connection",
+						"default": "untrusted",
+						"enum": [
+							"untrusted",
+							"trusted"
+						],
+						"markdownEnumDescriptions": [
+							"Untrusted is the normal permission level",
+							"Trusted bypasses X11 security extention, allowing remote windows full access to other applications on the X11 server."
+						]
+					},
 					"remoteX11.SSH.authenticationMethod": {
 						"type": "string",
 						"description": "Sets how Remote X11 authenticates for SSH connections.",
@@ -115,6 +128,7 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
+		"@types/command-exists": "^1.2.0",
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^8.0.0",
 		"@types/node": "^12.12.53",
@@ -140,6 +154,7 @@
 		"webpack-cli": "^3.3.12"
 	},
 	"dependencies": {
+		"command-exists": "^1.2.9",
 		"ssh2": "^0.8.9"
 	},
 	"prettier": {

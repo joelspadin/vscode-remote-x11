@@ -10,6 +10,8 @@ export type AuthenticationMethod = 'agent' | 'keyFile';
 
 export type X11ConnectionMethod = 'tcp' | 'unix';
 
+export type XAuthPermissionLevel = 'untrusted' | 'trusted';
+
 export function getConfig<T>(name: string, defaultValue: T): T {
 	const config = vscode.workspace.getConfiguration('remoteX11');
 	return config.get(name, defaultValue);
@@ -61,6 +63,10 @@ export function getX11ConnectionMethod(): X11ConnectionMethod {
 
 export function getX11SocketPath(): string {
 	return getConfig('X11Socket', "/tmp/.X11-unix/X");
+}
+
+export function getXAuthPermissionLevel(): XAuthPermissionLevel {
+	return getConfig<XAuthPermissionLevel>('SSH.XAuthPermissionLevel', 'untrusted');
 }
 
 function getDefaultAgent(): string {
