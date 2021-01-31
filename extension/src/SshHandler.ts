@@ -14,11 +14,15 @@ export class SshHandler extends RemoteHandler {
             'remoteX11.display',
             'remoteX11.screen',
             'remoteX11.SSH.agent',
+            'remoteX11.SSH.authenticationMethod',
             'remoteX11.SSH.displayCommand',
             'remoteX11.SSH.enable',
             'remoteX11.SSH.host',
             'remoteX11.SSH.port',
             'remoteX11.SSH.privateKey',
+            'remoteX11.SSH.X11ConnectionType',
+            'remoteX11.SSH.X11Socket',
+            'remoteX11.SSH.XAuthPermissionLevel',
         ];
     }
 
