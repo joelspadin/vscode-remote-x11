@@ -55,8 +55,8 @@
               "trusted"
             ],
             "markdownEnumDescriptions": [
-              "Untrusted is the normal permission level",
-              "Trusted bypasses X11 security extention, allowing remote windows full access to other applications on the X11 server."
+              "Equivalent to `ssh -X`. The normal permission level",
+              "Equivalent to `ssh -Y`. Bypasses X11 security extension, allowing remote windows full access to other applications on the X11 server."
             ]
           },
           "remoteX11.SSH.authenticationMethod": {
@@ -106,19 +106,21 @@
           "remoteX11.SSH.X11ConnectionType": {
             "type": "string",
             "description": "Sets how Remote X11 connects to the local X11 server.",
-            "default": "tcp",
+            "default": "auto",
             "enum": [
+              "auto",
               "tcp",
               "unix"
             ],
             "markdownEnumDescriptions": [
-              "TCP connects to an X11 server listening on a local TCP socket.",
-              "Unix connects to an X11 server listening on a unix socket specified in `#remoteX11.X11Socket#`. This is generally nessasary for linux hosts."
+              "Selects `tcp` on Windows hosts and `unix` on Linux/macOS hosts.",
+              "Connects to an X11 server listening on a local TCP socket.",
+              "Connects to an X11 server listening on a Unix socket specified in `#remoteX11.SSH.X11Socket#`."
             ]
           },
           "remoteX11.SSH.X11Socket": {
             "type": "string",
-            "markdownDescription": "Path to the X11 server unix socket. The screen number specified in `#remoteX11.screen#` is appended to the end. Used when `#remoteX11.X11ConnectionType#` is set to unix. ",
+            "markdownDescription": "Path to the X11 server Unix socket. The screen number specified in `#remoteX11.screen#` is appended to the end. Used when `#remoteX11.X11ConnectionType#` is set to `unix`.",
             "default": "/tmp/.X11-unix/X"
           },
           "remoteX11.SSH.timeout": {
