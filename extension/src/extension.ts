@@ -15,6 +15,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     } else {
         context.environmentVariableCollection.clear();
     }
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('remote-x11.reconnect', async () => {
+            if (handler) {
+                await reconnect(handler);
+            }
+        }),
+    );
 }
 
 export function deactivate(): void {
@@ -40,4 +48,18 @@ function getRemoteHandler(context: vscode.ExtensionContext): RemoteHandler | und
             getLogger().log(`Unknown remote type "${vscode.env.remoteName}".`);
             return undefined;
     }
+}
+
+async function reconnect(handler: RemoteHandler) {
+    await vscode.window.withProgress(
+        {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Reconnecting X11 display...',
+        },
+        async () => {
+            await handler.apply();
+        },
+    );
+
+    vscode.window.showInformationMessage('X11 display reconnected. Terminals may need to be reloaded.');
 }

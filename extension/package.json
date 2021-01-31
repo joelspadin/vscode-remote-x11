@@ -16,7 +16,7 @@
   "license": "MIT",
   "version": "1.4.1",
   "engines": {
-    "vscode": "^1.47.0"
+    "vscode": "^1.52.0"
   },
   "extensionKind": [
     "workspace"
@@ -34,6 +34,13 @@
     "*"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "remote-x11.reconnect",
+        "category": "Remote X11",
+        "title": "Reconnect Display"
+      }
+    ],
     "configuration": [
       {
         "title": "Remote X11",
