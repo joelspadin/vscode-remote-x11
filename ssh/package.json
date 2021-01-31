@@ -16,7 +16,7 @@
   "license": "MIT",
   "version": "1.4.0",
   "engines": {
-    "vscode": "^1.47.0"
+    "vscode": "^1.52.0"
   },
   "extensionKind": [
     "ui"
@@ -102,6 +102,24 @@
             "markdownDescription": "Sets the port to connect to instead of reading from `SSH_CONNECTION`.",
             "default": null,
             "scope": "machine"
+          },
+          "remoteX11.SSH.X11ConnectionType": {
+            "type": "string",
+            "description": "Sets how Remote X11 connects to the local X11 server.",
+            "default": "tcp",
+            "enum": [
+              "tcp",
+              "unix"
+            ],
+            "markdownEnumDescriptions": [
+              "TCP connects to an X11 server listening on a local TCP socket.",
+              "Unix connects to an X11 server listening on a unix socket specified in `#remoteX11.X11Socket#`. This is generally nessasary for linux hosts."
+            ]
+          },
+          "remoteX11.SSH.X11Socket": {
+            "type": "string",
+            "markdownDescription": "Path to the X11 server unix socket. The screen number specified in `#remoteX11.screen#` is appended to the end. Used when `#remoteX11.X11ConnectionType#` is set to unix. ",
+            "default": "/tmp/.X11-unix/X"
           },
           "remoteX11.SSH.timeout": {
             "type": "number",

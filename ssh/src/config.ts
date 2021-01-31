@@ -58,11 +58,11 @@ export function isVerboseLoggingEnabled(): boolean {
 }
 
 export function getX11ConnectionMethod(): X11ConnectionMethod {
-    return getConfig<X11ConnectionMethod>('X11ConnectionType', 'tcp');
+    return getConfig<X11ConnectionMethod>('SSH.X11ConnectionType', 'tcp');
 }
 
 export function getX11SocketPath(): string {
-    return getConfig('X11Socket', '/tmp/.X11-unix/X');
+    return getConfig('SSH.X11Socket', '/tmp/.X11-unix/X');
 }
 
 export function getXAuthPermissionLevel(): XAuthPermissionLevel {
