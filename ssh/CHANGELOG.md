@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.5.0
+
+-   Added support for Unix sockets and xauth to support Unix hosts. Thanks, [justin-gerhardt](https://github.com/justin-gerhardt)!
+
 ## 1.4.0
 
 -   The SSH connection can now be restarted with new settings without reloading VS Code.

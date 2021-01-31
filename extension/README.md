@@ -10,9 +10,14 @@ must be running an X server on the local machine. For SSH connections, the
 extension must also be installed on the local machine (this should be installed
 automatically when you install this extension).
 
-For Windows, this extension has only been tested with [VcXsrv](https://sourceforge.net/projects/vcxsrv/),
+**You may need to change some settings for this to work with SSH!** Please check
+the "Authentication Settings" section below, as this extension cannot use VS Code's
+SSH authentication, and it does not support all SSH authentication methods.
+
+For Windows hosts, this extension has only been tested with [VcXsrv](https://sourceforge.net/projects/vcxsrv/),
 but other servers such as [Cygwin/X](https://x.cygwin.com/), [Xming](http://www.straightrunning.com/XmingNotes/),
-and [X410](https://token2shell.com/x410/) should also work.
+and [X410](https://token2shell.com/x410/) should also work. Windows remotes are
+not currently supported.
 
 For SSH connections, if the remote machine does not have Bash installed, you
 must change the `remoteX11.SSH.displayCommand` setting and provide a command
@@ -42,8 +47,11 @@ for more details on authentication settings.
 
 ## Extension Settings
 
-You must reload the window (F1 > Developer: Reload Window) for setting changes
-to apply.
+Changes to settings will normally apply automatically after a short delay. You
+may need to restart any terminals if setting changes result in the `DISPLAY`
+variable changing.
+
+You can also use `F1 > Remote X11: Reconnect Display` to force an update.
 
 -   `remoteX11.display` - Display number to connect to. Change this if your X server
     is using a display other than 0.
@@ -60,6 +68,11 @@ to apply.
     Only used if `remoteX11.SSH.authenticationMethod` is `agent`.
 -   `remoteX11.SSH.privateKey` - Absolute path to your SSH private key file.
     Only used if `remoteX11.SSH.authenticationMethod` is `publicKey`.
+-   `remoteX11.SSH.XAuthPermissionLevel` - Select between untrusted (`ssh -X`) and trusted (`ssh -Y`) permissions.
+-   `remoteX11.SSH.X11ConnectionType` - Select between TCP and Unix sockets for the X11 connection.
+    Defaults to `tcp` on Windows hosts or `unix` otherwise.
+-   `remoteX11.SSH.X11Socket` - Selects the Unix socket to connect to. The screen number is appended to the end of
+    this setting.
 -   `remoteX11.SSH.displayCommand` - A command which prints `DISPLAY=<DISPLAY>` followed by a newline,
     where `<DISPLAY>` is the value of the `DISPLAY` variable. Note that there must not be any spaces
     in this text. Change this when connecting to a machine that doesn't support the default command.
@@ -104,8 +117,9 @@ ssh-add <path/to/private/key>
 If your key is passphrase-protected, you will be prompted to enter the passphrase.
 You can then log in without re-entering the passphrase.
 
-You can also use [Pageant](https://winscp.net/eng/docs/ui_pageant) on Windows by
-changing the `remoteX11.SSH.agent` setting to `pageant`.
+On Windows, you can also use [Pageant](https://winscp.net/eng/docs/ui_pageant)
+instead of the built-in OpenSSH agent by changing the `remoteX11.SSH.agent`
+setting to `pageant`.
 
 ## Troubleshooting
 
@@ -150,6 +164,13 @@ run a GUI application, make sure your X server is running on your local machine.
 
 Also make sure the `remoteX11.display` setting matches the display number your
 X server is set to use.
+
+### Are you using the correct connection type?
+
+X11 servers on Windows typically use a TCP connection, and servers on Unix-based
+systems typically use a Unix socket. When `remoteX11.SSH.X11ConnectionType` is
+`auto`, it will select between TCP and Unix sockets accordingly. If the automatic
+selection is not correct, you can manually change it to use TCP or Unix sockets.
 
 ### Is SSH able to find the display?
 

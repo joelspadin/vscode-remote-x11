@@ -3,6 +3,11 @@
 See the [Remote X11 (SSH) Changelog](https://github.com/ChaosinaCan/vscode-remote-x11/blob/master/ssh/CHANGELOG.md#change-log)
 for full changes to the SSH extension. Only new features and notable fixes are listed below.
 
+## 1.5.0
+
+-   Added support for Unix sockets and xauth to support Unix hosts. Thanks, [justin-gerhardt](https://github.com/justin-gerhardt)!
+-   Added a `Remote X11: Reconnect Display` setting to manually restart the connection.
+
 ## 1.4.1
 
 -   Fixed images not appearing in readme.
